@@ -1,12 +1,12 @@
-[Kr.html](https://github.com/user-attachments/files/25872349/Kr.html)
-import React, { useState, useEffect, useRef } from 'react';
+[K1.html](https://github.com/user-attachments/files/25872600/K1.html)
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { BookOpen, Headphones, Edit3, Mic, Home, Volume2, CheckCircle2, XCircle, ArrowRight, RefreshCw, Info, HelpCircle, PenTool, Trash2, AlertCircle } from 'lucide-react';
 
 // ==========================================
 // 1. TOPIK 1 擴充詞彙資料庫 (60個高頻核心字)
 // ==========================================
 const vocabDatabase = [
-  // 形容詞 (相反詞與常見)
+  // 形容詞
   { id: 1, word: '가깝다', meaning: '近', pos: '形容詞', example: '집이 가까워요.', exampleMeaning: '家很近。' },
   { id: 2, word: '멀다', meaning: '遠', pos: '形容詞', example: '학교가 멀어요.', exampleMeaning: '學校很遠。' },
   { id: 3, word: '크다', meaning: '大', pos: '形容詞', example: '옷이 커요.', exampleMeaning: '衣服很大。' },
@@ -34,7 +34,7 @@ const vocabDatabase = [
   { id: 25, word: '맵다', meaning: '辣', pos: '形容詞', example: '김치가 매워요.', exampleMeaning: '泡菜很辣。' },
   { id: 26, word: '달다', meaning: '甜', pos: '形容詞', example: '사과가 달아요.', exampleMeaning: '蘋果很甜。' },
 
-  // 動詞 (日常與考試高頻)
+  // 動詞
   { id: 27, word: '가다', meaning: '去', pos: '動詞', example: '학교에 가요.', exampleMeaning: '去學校。' },
   { id: 28, word: '오다', meaning: '來', pos: '動詞', example: '친구가 와요.', exampleMeaning: '朋友來了。' },
   { id: 29, word: '먹다', meaning: '吃', pos: '動詞', example: '점심을 먹어요.', exampleMeaning: '吃午餐。' },
@@ -58,9 +58,9 @@ const vocabDatabase = [
   { id: 47, word: '잃어버리다', meaning: '遺失', pos: '動詞', example: '지갑을 잃어버렸어요.', exampleMeaning: '弄丟了錢包。' },
   { id: 48, word: '찾다', meaning: '尋找', pos: '動詞', example: '길을 찾아요.', exampleMeaning: '找路。' },
   { id: 49, word: '기다리다', meaning: '等待', pos: '動詞', example: '친구를 기다려요.', exampleMeaning: '等朋友。' },
-  { id: 50, word: '도와주다', meaning: '幫忙', pos: '動詞', 단어: '도와주다', example: '저 좀 도와주세요.', exampleMeaning: '請幫幫我。' },
+  { id: 50, word: '도와주다', meaning: '幫忙', pos: '動詞', example: '저 좀 도와주세요.', exampleMeaning: '請幫幫我。' },
 
-  // 副詞與其他 (極常考)
+  // 副詞
   { id: 51, word: '아주', meaning: '非常', pos: '副詞', example: '아주 예뻐요.', exampleMeaning: '非常漂亮。' },
   { id: 52, word: '너무', meaning: '太...', pos: '副詞', example: '너무 비싸요.', exampleMeaning: '太貴了。' },
   { id: 53, word: '가장', meaning: '最', pos: '副詞', example: '가장 좋아해요.', exampleMeaning: '最喜歡。' },
@@ -73,7 +73,7 @@ const vocabDatabase = [
   { id: 60, word: '늦게', meaning: '晚', pos: '副詞', example: '늦게 일어났어요.', exampleMeaning: '很晚才起床。' }
 ];
 
-// 提取韓文初聲
+// 提取韓文初聲輔助函數
 function getChoSeong(word) {
   const cho = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
   let result = '';
@@ -85,53 +85,61 @@ function getChoSeong(word) {
   return result.trim();
 }
 
+// 主程式 App
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState({ vocabLearned: 0, listeningScore: 0, writingScore: 0, speakingScore: 0 });
-  const [mistakes, setMistakes] = useState(new Set()); // 儲存錯題的 ID
+  const [mistakes, setMistakes] = useState(new Set()); // 儲存錯題 ID
 
-  const addMistake = (id) => {
+  // 安全寫入錯題本
+  const addMistake = useCallback((id) => {
     setMistakes(prev => new Set([...prev, id]));
-  };
+  }, []);
 
-  const removeMistake = (id) => {
+  // 從錯題本移除
+  const removeMistake = useCallback((id) => {
     setMistakes(prev => {
       const newSet = new Set(prev);
       newSet.delete(id);
       return newSet;
     });
-  };
+  }, []);
 
-  const speak = (text) => {
-    if ('speechSynthesis' in window) {
+  // 語音合成輔助函數 (防呆處理)
+  const speak = useCallback((text) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      // 防止語音卡住，先停止當前語音
+      window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ko-KR';
-      utterance.rate = 0.8; 
+      utterance.rate = 0.8; // 稍慢的速度適合學習
       window.speechSynthesis.speak(utterance);
     }
-  };
+  }, []);
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-slate-50 font-sans text-slate-800">
+      {/* 側邊導航 */}
       <nav className="w-full md:w-64 bg-white shadow-lg flex md:flex-col justify-around md:justify-start p-4 shrink-0 z-10 overflow-x-auto">
         <div className="hidden md:flex items-center gap-3 mb-8 px-2">
           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shrink-0">
             PRO
           </div>
-          <h1 className="text-xl font-bold text-slate-800 tracking-tight shrink-0">TOPIK 1<br/><span className="text-sm text-slate-500 font-normal">旗艦版</span></h1>
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight shrink-0">TOPIK 1<br/><span className="text-sm text-slate-500 font-normal">旗艦穩定版</span></h1>
         </div>
 
-        <div className="flex md:flex-col gap-2 min-w-max md:min-w-0">
+        <div className="flex md:flex-col gap-2 min-w-max md:min-w-0 w-full">
           <NavItem icon={<Home />} label="主頁" isActive={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
           <NavItem icon={<BookOpen />} label="詞彙" isActive={activeTab === 'vocab'} onClick={() => setActiveTab('vocab')} />
           <NavItem icon={<Headphones />} label="聽力" isActive={activeTab === 'listening'} onClick={() => setActiveTab('listening')} />
           <NavItem icon={<Edit3 />} label="書寫" isActive={activeTab === 'writing'} onClick={() => setActiveTab('writing')} />
           <NavItem icon={<Mic />} label="口說" isActive={activeTab === 'speaking'} onClick={() => setActiveTab('speaking')} />
-          <NavItem icon={<AlertCircle />} label={`錯題本 (${mistakes.size})`} isActive={activeTab === 'mistakes'} onClick={() => setActiveTab('mistakes')} badge={mistakes.size} />
+          <NavItem icon={<AlertCircle />} label={`錯題本`} isActive={activeTab === 'mistakes'} onClick={() => setActiveTab('mistakes')} badge={mistakes.size} />
         </div>
       </nav>
 
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+      {/* 主要內容區 */}
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto w-full">
         {activeTab === 'dashboard' && <Dashboard stats={stats} mistakesCount={mistakes.size} setActiveTab={setActiveTab} />}
         {activeTab === 'vocab' && <VocabPractice speak={speak} setStats={setStats} />}
         {activeTab === 'listening' && <ListeningPractice speak={speak} setStats={setStats} addMistake={addMistake} />}
@@ -143,37 +151,42 @@ export default function App() {
   );
 }
 
+// 導航按鈕組件
 function NavItem({ icon, label, isActive, onClick, badge }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 p-3 rounded-xl transition-all duration-200 w-full text-sm md:text-base whitespace-nowrap ${
+      className={`flex items-center justify-center md:justify-start gap-2 p-3 rounded-xl transition-all duration-200 w-full text-sm md:text-base whitespace-nowrap ${
         isActive ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-500 hover:bg-slate-100'
       }`}
     >
       <span className={isActive ? 'text-indigo-600' : 'text-slate-400'}>{icon}</span>
-      <span className="flex-1 text-left">{label}</span>
+      <span className="hidden md:inline flex-1 text-left">{label}</span>
+      <span className="md:hidden">{label}</span>
       {badge > 0 && (
-        <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{badge}</span>
+        <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-1 md:ml-0">{badge}</span>
       )}
     </button>
   );
 }
 
+// ==========================================
+// 主頁儀表板
+// ==========================================
 function Dashboard({ stats, mistakesCount, setActiveTab }) {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <header className="mb-8">
         <h2 className="text-3xl font-bold text-slate-800">歡迎來到旗艦版！🚀</h2>
-        <p className="text-slate-500 mt-2">全新 60 個核心單字庫，加入「無鍵盤拼字」與「手寫板」功能。</p>
+        <p className="text-slate-500 mt-2">系統已升級：支援免鍵盤拼字、手寫板防滑處理，語音功能更穩定。</p>
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <StatCard title="已學詞彙" value={stats.vocabLearned} icon={<BookOpen className="text-blue-500" />} bgColor="bg-blue-50" />
         <StatCard title="聽力得分" value={stats.listeningScore} icon={<Headphones className="text-purple-500" />} bgColor="bg-purple-50" />
-        <StatCard title="書寫得分" value={stats.writingScore} icon={<Edit3 className="text-green-500" />} bgColor="bg-green-50" />
+        <StatCard title="拼字得分" value={stats.writingScore} icon={<Edit3 className="text-green-500" />} bgColor="bg-green-50" />
         <StatCard title="口說達標" value={stats.speakingScore} icon={<Mic className="text-orange-500" />} bgColor="bg-orange-50" />
-        <div onClick={() => setActiveTab('mistakes')} className="bg-red-50 p-5 rounded-2xl shadow-sm border border-red-100 flex flex-col items-center text-center cursor-pointer hover:bg-red-100 transition">
+        <div onClick={() => setActiveTab('mistakes')} className="bg-red-50 p-5 rounded-2xl shadow-sm border border-red-100 flex flex-col items-center text-center cursor-pointer hover:bg-red-100 transition transform hover:-translate-y-1">
           <div className="p-3 rounded-full bg-white text-red-500 mb-3"><AlertCircle /></div>
           <p className="text-red-600 text-sm font-medium">待複習錯題</p>
           <p className="text-2xl font-bold text-red-700">{mistakesCount}</p>
@@ -181,10 +194,10 @@ function Dashboard({ stats, mistakesCount, setActiveTab }) {
       </div>
 
       <div className="mt-8 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-        <h3 className="text-xl font-bold mb-4">功能捷徑</h3>
+        <h3 className="text-xl font-bold mb-4">精選功能捷徑</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ActionCard onClick={() => setActiveTab('writing')} title="無鍵盤拼字練習" desc="點擊方塊拼出單字，不再需要切換輸入法。" icon={<Edit3 size={24} />} color="indigo" />
-          <ActionCard onClick={() => setActiveTab('mistakes')} title="錯題手寫板 (罰抄)" desc="親筆寫下錯過的單字，加深肌肉記憶。" icon={<PenTool size={24} />} color="red" />
+          <ActionCard onClick={() => setActiveTab('writing')} title="無鍵盤拼字練習" desc="點擊方塊拼出單字，完全不需要切換韓文輸入法。" icon={<Edit3 size={24} />} color="indigo" />
+          <ActionCard onClick={() => setActiveTab('mistakes')} title="錯題手寫板 (罰抄)" desc="親筆寫下錯過的單字，支援手機觸控與滑鼠操作。" icon={<PenTool size={24} />} color="red" />
         </div>
       </div>
     </div>
@@ -216,15 +229,22 @@ function ActionCard({ onClick, title, desc, icon, color }) {
 }
 
 // ==========================================
-// 功能 1 & 2: 詞彙記憶與聽力 (簡化程式碼保留功能)
+// 詞彙記憶卡
 // ==========================================
 function VocabPractice({ speak, setStats }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showMeaning, setShowMeaning] = useState(false);
   const word = vocabDatabase[currentIndex];
 
-  const handleNext = () => { setShowMeaning(false); setCurrentIndex(p => (p + 1) % vocabDatabase.length); setStats(p => ({ ...p, vocabLearned: p.vocabLearned + 1 })); };
-  const handlePrev = () => { setShowMeaning(false); setCurrentIndex(p => (p - 1 + vocabDatabase.length) % vocabDatabase.length); };
+  const handleNext = () => { 
+    setShowMeaning(false); 
+    setCurrentIndex(p => (p + 1) % vocabDatabase.length); 
+    setStats(p => ({ ...p, vocabLearned: p.vocabLearned + 1 })); 
+  };
+  const handlePrev = () => { 
+    setShowMeaning(false); 
+    setCurrentIndex(p => (p - 1 + vocabDatabase.length) % vocabDatabase.length); 
+  };
 
   return (
     <div className="max-w-2xl mx-auto flex flex-col items-center justify-center h-full">
@@ -235,11 +255,14 @@ function VocabPractice({ speak, setStats }) {
       <div className="w-full aspect-[4/3] md:aspect-[16/9] bg-white rounded-3xl shadow-md border border-slate-100 flex flex-col items-center justify-center p-8 cursor-pointer relative" onClick={() => setShowMeaning(!showMeaning)}>
         <button onClick={(e) => { e.stopPropagation(); speak(word.word); }} className="absolute top-6 right-6 p-3 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 transition"><Volume2 size={24} /></button>
         <span className="text-sm font-semibold text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full mb-4">{word.pos}</span>
-        <h3 className="text-5xl md:text-7xl font-bold text-slate-800 mb-6">{word.word}</h3>
+        <h3 className="text-5xl md:text-7xl font-bold text-slate-800 mb-6 text-center">{word.word}</h3>
         {showMeaning ? (
           <div className="text-center animate-fadeIn w-full">
             <p className="text-2xl text-slate-700 font-medium mb-6">{word.meaning}</p>
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100"><p className="text-lg mb-2">{word.example}</p><p className="text-sm text-slate-500">{word.exampleMeaning}</p></div>
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <p className="text-lg mb-2">{word.example}</p>
+              <p className="text-sm text-slate-500">{word.exampleMeaning}</p>
+            </div>
           </div>
         ) : <p className="text-slate-400 text-sm mt-8 animate-pulse">點擊卡片查看解釋</p>}
       </div>
@@ -251,12 +274,15 @@ function VocabPractice({ speak, setStats }) {
   );
 }
 
+// ==========================================
+// 聽力測驗 (單選題)
+// ==========================================
 function ListeningPractice({ speak, setStats, addMistake }) {
   const [question, setQuestion] = useState(null);
   const [options, setOptions] = useState([]);
   const [selected, setSelected] = useState(null);
 
-  const generateQuestion = () => {
+  const generateQuestion = useCallback(() => {
     setSelected(null);
     const correctWord = vocabDatabase[Math.floor(Math.random() * vocabDatabase.length)];
     let wrongOptions = [];
@@ -266,14 +292,18 @@ function ListeningPractice({ speak, setStats, addMistake }) {
     }
     setQuestion(correctWord);
     setOptions([correctWord, ...wrongOptions].sort(() => Math.random() - 0.5));
-  };
-  useEffect(() => { generateQuestion(); }, []);
+  }, []);
+
+  useEffect(() => { generateQuestion(); }, [generateQuestion]);
 
   const handleSelect = (option) => {
     if (selected) return;
     setSelected(option);
-    if (option.id === question.id) setStats(p => ({ ...p, listeningScore: p.listeningScore + 1 }));
-    else addMistake(question.id); // 聽錯加入錯題本
+    if (option.id === question.id) {
+      setStats(p => ({ ...p, listeningScore: p.listeningScore + 1 }));
+    } else {
+      addMistake(question.id); // 聽錯加入錯題本
+    }
   };
 
   if (!question) return null;
@@ -284,17 +314,17 @@ function ListeningPractice({ speak, setStats, addMistake }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
         {options.map((opt, idx) => {
           let btnClass = "py-4 px-6 bg-white border-2 rounded-2xl text-lg font-medium transition-all text-slate-700 ";
-          if (!selected) btnClass += "border-slate-100 hover:border-indigo-300";
-          else if (opt.id === question.id) btnClass += "border-green-500 bg-green-50 text-green-700";
-          else if (selected.id === opt.id) btnClass += "border-red-500 bg-red-50 text-red-700";
+          if (!selected) btnClass += "border-slate-100 hover:border-indigo-300 shadow-sm";
+          else if (opt.id === question.id) btnClass += "border-green-500 bg-green-50 text-green-700 shadow-sm";
+          else if (selected.id === opt.id) btnClass += "border-red-500 bg-red-50 text-red-700 shadow-sm";
           else btnClass += "border-slate-100 opacity-50";
           return <button key={idx} onClick={() => handleSelect(opt)} className={btnClass} disabled={selected !== null}>{opt.meaning}</button>;
         })}
       </div>
       {selected && (
-        <div className="mt-8 flex flex-col items-center animate-fadeIn">
+        <div className="mt-8 flex flex-col items-center animate-fadeIn w-full">
           <p className="text-slate-600 mb-6 text-center"><span className="font-bold text-2xl mr-2">{question.word}</span></p>
-          <button onClick={generateQuestion} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 flex items-center gap-2">下一題 <ArrowRight size={18} /></button>
+          <button onClick={generateQuestion} className="w-full md:w-auto px-8 py-4 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 flex justify-center items-center gap-2">下一題 <ArrowRight size={18} /></button>
         </div>
       )}
     </div>
@@ -302,41 +332,63 @@ function ListeningPractice({ speak, setStats, addMistake }) {
 }
 
 // ==========================================
-// 功能 3: 升級版書寫練習 (無鍵盤拼字)
+// 拼字練習 (無鍵盤點擊模式)
 // ==========================================
 function WritingPractice({ setStats, speak, addMistake }) {
   const [question, setQuestion] = useState(null);
-  const [pool, setPool] = useState([]); // 可選的音節方塊
-  const [answer, setAnswer] = useState([]); // 已選的音節
-  const [status, setStatus] = useState('playing'); // playing, correct, wrong
+  const [pool, setPool] = useState([]); // 底下可選的方塊
+  const [answer, setAnswer] = useState([]); // 上方已填的方塊
+  const [status, setStatus] = useState('playing'); 
   const [hintLevel, setHintLevel] = useState(0);
 
-  const generateQuestion = () => {
+  const generateQuestion = useCallback(() => {
     const randomWord = vocabDatabase[Math.floor(Math.random() * vocabDatabase.length)];
     setQuestion(randomWord);
     
-    // 拆分單字成音節
+    // 將單字拆分成字元
     const targetChars = randomWord.word.split('');
     
-    // 從資料庫隨機抽取干擾音節
+    // 產生干擾字元 (從資料庫隨機抽取)
     const allChars = vocabDatabase.map(w => w.word).join('').split('');
     let distractors = [];
-    while (distractors.length < 4) { // 給4個干擾項
+    while (distractors.length < 4) {
       const randChar = allChars[Math.floor(Math.random() * allChars.length)];
       if (!targetChars.includes(randChar) && !distractors.includes(randChar)) {
         distractors.push(randChar);
       }
     }
     
-    // 混合並打亂
-    const combinedPool = [...targetChars, ...distractors].map((char, index) => ({ id: index, char }));
+    // 建立獨一無二的 ID 防止 React Key 衝突
+    const combinedPool = [...targetChars, ...distractors].map((char, index) => ({ id: `pool_${index}`, char }));
     setPool(combinedPool.sort(() => Math.random() - 0.5));
     setAnswer(Array(targetChars.length).fill(null));
     setStatus('playing');
     setHintLevel(0);
-  };
+  }, []);
 
-  useEffect(() => { generateQuestion(); }, []);
+  useEffect(() => { generateQuestion(); }, [generateQuestion]);
+
+  // 檢查答案的邏輯
+  const performCheck = useCallback((currentAnswer) => {
+    if (currentAnswer.includes(null)) return;
+    
+    const currentWord = currentAnswer.map(a => a.char).join('');
+    if (currentWord === question.word) {
+      setStatus('correct');
+      speak(question.word);
+      if (hintLevel === 0) setStats(prev => ({ ...prev, writingScore: prev.writingScore + 1 }));
+    } else {
+      setStatus('wrong');
+      addMistake(question.id); // 拼錯自動加入錯題本
+    }
+  }, [question, speak, hintLevel, setStats, addMistake]);
+
+  // 監聽答案是否填滿
+  useEffect(() => {
+    if (answer.length > 0 && !answer.includes(null) && status === 'playing') {
+      performCheck(answer);
+    }
+  }, [answer, status, performCheck]);
 
   const handleSelectPool = (item) => {
     if (status !== 'playing') return;
@@ -357,26 +409,12 @@ function WritingPractice({ setStats, speak, addMistake }) {
     setPool([...pool, item]);
   };
 
-  const checkAnswer = () => {
-    if (answer.includes(null)) return; // 還沒拼完
-    
-    const currentWord = answer.map(a => a.char).join('');
-    if (currentWord === question.word) {
-      setStatus('correct');
-      speak(question.word);
-      if (hintLevel === 0) setStats(prev => ({ ...prev, writingScore: prev.writingScore + 1 }));
-    } else {
-      setStatus('wrong');
-      addMistake(question.id); // 拼錯加入錯題本
-    }
-  };
-
   const requestHint = () => {
     if (hintLevel < 2) {
       setHintLevel(prev => prev + 1);
-      addMistake(question.id); // 用了提示就加入錯題本
-      // 若有錯先清空答案，讓方塊回歸
+      addMistake(question.id); // 使用提示即加入錯題本
       if(status === 'wrong') {
+         // 清除錯誤狀態，重新把字元放回池子
          const returnedPool = [...pool, ...answer.filter(a => a !== null)];
          setPool(returnedPool);
          setAnswer(Array(question.word.length).fill(null));
@@ -385,19 +423,12 @@ function WritingPractice({ setStats, speak, addMistake }) {
     }
   };
 
-  // 當答案填滿時自動檢查
-  useEffect(() => {
-    if (answer.length > 0 && !answer.includes(null) && status === 'playing') {
-      checkAnswer();
-    }
-  }, [answer]);
-
   if (!question) return null;
 
   return (
     <div className="max-w-xl mx-auto flex flex-col items-center justify-center h-full">
       <div className="w-full bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 text-center relative overflow-hidden">
-        <h2 className="text-xl font-bold text-slate-500 mb-2">拼出這個單字 (無鍵盤模式)</h2>
+        <h2 className="text-xl font-bold text-slate-500 mb-2">拼字遊戲 (無鍵盤模式)</h2>
         <div className="flex justify-center items-end gap-3 mb-6">
           <p className="text-5xl font-black text-slate-800">{question.meaning}</p>
           <span className="text-sm font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded mb-1">{question.pos}</span>
@@ -412,25 +443,25 @@ function WritingPractice({ setStats, speak, addMistake }) {
           )}
           {hintLevel === 2 && (
             <div className="text-red-500 bg-red-50 px-4 py-2 rounded-lg font-bold text-xl border border-red-100">
-              答案是：{question.word}
+              答案：{question.word}
             </div>
           )}
         </div>
 
-        {/* 答案放置區 (Slots) */}
-        <div className={`flex justify-center gap-3 mb-8 p-4 rounded-2xl ${status === 'wrong' ? 'bg-red-50 border border-red-200' : status === 'correct' ? 'bg-green-50 border border-green-200' : 'bg-slate-50 border border-slate-200'}`}>
+        {/* 答案槽 (Slots) */}
+        <div className={`flex justify-center gap-2 md:gap-3 mb-8 p-4 rounded-2xl ${status === 'wrong' ? 'bg-red-50 border border-red-200' : status === 'correct' ? 'bg-green-50 border border-green-200' : 'bg-slate-50 border border-slate-200'}`}>
           {answer.map((item, idx) => (
             <div 
               key={idx} 
               onClick={() => handleSelectAnswer(item, idx)}
-              className={`w-16 h-16 md:w-20 md:h-20 flex items-center justify-center text-3xl font-bold rounded-xl transition-all ${item ? 'bg-indigo-600 text-white shadow-md cursor-pointer hover:bg-indigo-700' : 'bg-white border-2 border-dashed border-slate-300 text-slate-300'}`}
+              className={`w-14 h-14 md:w-20 md:h-20 flex items-center justify-center text-3xl font-bold rounded-xl transition-all ${item ? 'bg-indigo-600 text-white shadow-md cursor-pointer hover:bg-indigo-700' : 'bg-white border-2 border-dashed border-slate-300 text-slate-300'}`}
             >
               {item ? item.char : ''}
             </div>
           ))}
         </div>
 
-        {/* 音節選擇區 (Pool) */}
+        {/* 選擇池 (Pool) */}
         {status === 'playing' && (
           <div className="flex flex-wrap justify-center gap-3 mb-8">
             {pool.map(item => (
@@ -445,10 +476,11 @@ function WritingPractice({ setStats, speak, addMistake }) {
           </div>
         )}
 
-        <div className="flex flex-col items-center h-24">
+        {/* 狀態反饋區 */}
+        <div className="flex flex-col items-center min-h-[6rem]">
           {status === 'playing' && (
              <button type="button" onClick={requestHint} disabled={hintLevel === 2} className={`px-6 py-2 rounded-xl transition ${hintLevel === 2 ? 'bg-slate-100 text-slate-300' : 'text-slate-500 underline hover:text-slate-800'}`}>
-               {hintLevel === 0 ? '不知道怎麼拼？(提示)' : hintLevel === 1 ? '直接看答案' : '已顯示答案'}
+               {hintLevel === 0 ? '不知道怎麼拼？(看提示)' : hintLevel === 1 ? '直接看答案' : '已顯示答案'}
              </button>
           )}
           {status === 'wrong' && (
@@ -458,14 +490,14 @@ function WritingPractice({ setStats, speak, addMistake }) {
                 setPool([...pool, ...answer.filter(a=>a!==null)].sort(()=>Math.random()-0.5));
                 setAnswer(Array(question.word.length).fill(null));
                 setStatus('playing');
-              }} className="px-6 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300">清空重拼</button>
+              }} className="px-6 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 font-semibold">清空重拼</button>
             </div>
           )}
           {status === 'correct' && (
             <div className="animate-fadeIn w-full flex flex-col items-center">
               <p className="text-green-600 font-bold text-lg mb-4 flex items-center gap-1"><CheckCircle2 /> 完全正確！</p>
-              <button onClick={generateQuestion} className="w-full py-3 bg-slate-800 text-white rounded-xl font-semibold hover:bg-slate-900 transition-colors flex justify-center items-center gap-2">
-                下一題 <ArrowRight size={18} />
+              <button onClick={generateQuestion} className="w-full py-4 bg-slate-800 text-white rounded-xl font-semibold hover:bg-slate-900 transition-colors flex justify-center items-center gap-2">
+                挑戰下一題 <ArrowRight size={18} />
               </button>
             </div>
           )}
@@ -476,7 +508,7 @@ function WritingPractice({ setStats, speak, addMistake }) {
 }
 
 // ==========================================
-// 功能 4: 錯題本與手寫板 (罰抄功能) - 新增
+// 錯題本與手寫板
 // ==========================================
 function MistakeReview({ mistakes, removeMistake, speak }) {
   const [selectedWord, setSelectedWord] = useState(null);
@@ -484,6 +516,7 @@ function MistakeReview({ mistakes, removeMistake, speak }) {
   // 取得錯題列表的詳細資料
   const mistakeWords = vocabDatabase.filter(w => mistakes.has(w.id));
 
+  // 如果選中了單字，渲染手寫板
   if (selectedWord) {
     return <DrawingCanvas word={selectedWord} goBack={() => setSelectedWord(null)} markLearned={() => { removeMistake(selectedWord.id); setSelectedWord(null); }} speak={speak} />;
   }
@@ -496,22 +529,22 @@ function MistakeReview({ mistakes, removeMistake, speak }) {
       </header>
 
       {mistakeWords.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-slate-400 bg-white rounded-3xl border border-slate-100 border-dashed">
+        <div className="flex-1 flex flex-col items-center justify-center text-slate-400 bg-white rounded-3xl border border-slate-100 border-dashed min-h-[300px]">
           <CheckCircle2 size={64} className="mb-4 text-green-300" />
           <p className="text-lg font-medium text-slate-500">太棒了！目前沒有錯題。</p>
-          <p className="text-sm">在聽力或拼字練習中答錯的單字會出現在這裡。</p>
+          <p className="text-sm">在聽力或拼字練習中答錯的單字會自動出現在這裡。</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {mistakeWords.map(word => (
-            <div key={word.id} onClick={() => setSelectedWord(word)} className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-md cursor-pointer transition group">
+            <div key={word.id} onClick={() => setSelectedWord(word)} className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-md cursor-pointer transition group relative">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-xs font-semibold text-red-500 bg-red-50 px-2 py-1 rounded">{word.pos}</span>
-                <button onClick={(e) => { e.stopPropagation(); removeMistake(word.id); }} className="text-slate-300 hover:text-red-500" title="移出租題本"><Trash2 size={16}/></button>
+                <button onClick={(e) => { e.stopPropagation(); removeMistake(word.id); }} className="text-slate-300 hover:text-red-500 p-1" title="移出租題本"><Trash2 size={16}/></button>
               </div>
               <p className="text-3xl font-bold text-slate-800 mb-1">{word.word}</p>
               <p className="text-slate-500">{word.meaning}</p>
-              <div className="mt-4 flex items-center text-indigo-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition">
+              <div className="mt-4 flex items-center text-indigo-500 text-sm font-medium opacity-100 md:opacity-0 group-hover:opacity-100 transition">
                 <PenTool size={14} className="mr-1"/> 進入手寫練習 <ArrowRight size={14} className="ml-1"/>
               </div>
             </div>
@@ -522,29 +555,43 @@ function MistakeReview({ mistakes, removeMistake, speak }) {
   );
 }
 
-// 實際的手寫板組件 (HTML5 Canvas)
+// 高度穩定且防滑動的 HTML5 Canvas 手寫板
 function DrawingCanvas({ word, goBack, markLearned, speak }) {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
-  useEffect(() => {
-    // 預設發音一次
-    speak(word.word);
-    
-    // 初始化畫布尺寸
+  // 初始化畫布尺寸
+  const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
-    if (canvas) {
-       // 為了支援高解析度螢幕
-       const rect = canvas.getBoundingClientRect();
+    const container = containerRef.current;
+    if (canvas && container) {
+       const rect = container.getBoundingClientRect();
+       // 設定真實解析度尺寸
        canvas.width = rect.width;
        canvas.height = rect.height;
+       
        const ctx = canvas.getContext('2d');
        ctx.lineCap = 'round';
        ctx.lineJoin = 'round';
        ctx.lineWidth = 6;
-       ctx.strokeStyle = '#312e81'; // 深靛藍色
+       ctx.strokeStyle = '#312e81'; // 筆跡顏色 (深靛藍)
     }
-  }, [word]);
+  }, []);
+
+  useEffect(() => {
+    speak(word.word);
+    
+    // 延遲一點點初始化確保 DOM 已經渲染完成
+    const timer = setTimeout(initCanvas, 100);
+    // 監聽視窗縮放
+    window.addEventListener('resize', initCanvas);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', initCanvas);
+    };
+  }, [word, speak, initCanvas]);
 
   const getCoordinates = (e) => {
     const canvas = canvasRef.current;
@@ -556,7 +603,8 @@ function DrawingCanvas({ word, goBack, markLearned, speak }) {
   };
 
   const startDrawing = (e) => {
-    e.preventDefault(); // 防止滾動
+    // 阻止預設行為(例如頁面滾動)，加強 touch-none 的效果
+    if(e.cancelable) e.preventDefault(); 
     const { x, y } = getCoordinates(e);
     const ctx = canvasRef.current.getContext('2d');
     ctx.beginPath();
@@ -565,7 +613,7 @@ function DrawingCanvas({ word, goBack, markLearned, speak }) {
   };
 
   const draw = (e) => {
-    e.preventDefault();
+    if(e.cancelable) e.preventDefault();
     if (!isDrawing) return;
     const { x, y } = getCoordinates(e);
     const ctx = canvasRef.current.getContext('2d');
@@ -582,24 +630,28 @@ function DrawingCanvas({ word, goBack, markLearned, speak }) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col h-full">
-      <div className="flex items-center justify-between mb-6">
-        <button onClick={goBack} className="text-slate-500 hover:text-slate-800 font-medium flex items-center gap-1">← 返回錯題本</button>
-        <button onClick={() => speak(word.word)} className="p-2 bg-indigo-50 text-indigo-600 rounded-full"><Volume2 size={20} /></button>
+    <div className="max-w-3xl mx-auto flex flex-col h-full w-full">
+      <div className="flex items-center justify-between mb-4">
+        <button onClick={goBack} className="text-slate-500 hover:text-slate-800 font-medium flex items-center gap-1 p-2 bg-white rounded-lg shadow-sm">← 返回錯題本</button>
+        <button onClick={() => speak(word.word)} className="p-3 bg-indigo-50 text-indigo-600 rounded-full shadow-sm"><Volume2 size={24} /></button>
       </div>
 
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex-1 flex flex-col relative overflow-hidden">
-        <div className="text-center mb-6 relative z-10 pointer-events-none">
+      <div className="bg-white p-4 md:p-6 rounded-3xl border border-slate-200 shadow-sm flex-1 flex flex-col relative overflow-hidden">
+        <div className="text-center mb-4 relative z-10 pointer-events-none">
           <p className="text-lg font-medium text-slate-500 mb-1">{word.meaning} ({word.pos})</p>
-          <p className="text-6xl font-black text-slate-800 tracking-widest">{word.word}</p>
-          <p className="text-sm text-slate-400 mt-2">請在下方空白處跟著描寫或罰抄</p>
+          <p className="text-5xl md:text-6xl font-black text-slate-800 tracking-widest">{word.word}</p>
         </div>
 
-        {/* 畫布區域 */}
-        <div className="flex-1 relative border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 overflow-hidden touch-none" style={{ backgroundImage: 'linear-gradient(#f1f5f9 1px, transparent 1px), linear-gradient(90deg, #f1f5f9 1px, transparent 1px)', backgroundSize: '40px 40px'}}>
+        {/* 畫布容器 (加入 touch-none 防止手機滑動) */}
+        <div 
+          ref={containerRef}
+          className="flex-1 relative border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 overflow-hidden touch-none" 
+          style={{ backgroundImage: 'linear-gradient(#f1f5f9 1px, transparent 1px), linear-gradient(90deg, #f1f5f9 1px, transparent 1px)', backgroundSize: '40px 40px'}}
+        >
+          <p className="absolute top-2 left-0 w-full text-center text-slate-300 text-sm pointer-events-none select-none">請在下方手寫罰抄</p>
           <canvas
             ref={canvasRef}
-            className="w-full h-full cursor-crosshair absolute top-0 left-0"
+            className="w-full h-full cursor-crosshair absolute top-0 left-0 touch-none"
             onMouseDown={startDrawing}
             onMouseMove={draw}
             onMouseUp={stopDrawing}
@@ -607,14 +659,15 @@ function DrawingCanvas({ word, goBack, markLearned, speak }) {
             onTouchStart={startDrawing}
             onTouchMove={draw}
             onTouchEnd={stopDrawing}
+            onTouchCancel={stopDrawing}
           />
         </div>
 
-        <div className="flex gap-4 mt-6">
-          <button onClick={clearCanvas} className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200">
+        <div className="flex flex-col md:flex-row gap-3 mt-4">
+          <button onClick={clearCanvas} className="w-full md:w-1/3 py-4 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition">
             清除重寫
           </button>
-          <button onClick={markLearned} className="flex-1 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 shadow-lg shadow-green-200 flex items-center justify-center gap-2">
+          <button onClick={markLearned} className="w-full md:w-2/3 py-4 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 shadow-lg shadow-green-200 flex items-center justify-center gap-2 transition">
             <CheckCircle2 size={20}/> 記住了，移出租題本
           </button>
         </div>
@@ -624,59 +677,102 @@ function DrawingCanvas({ word, goBack, markLearned, speak }) {
 }
 
 // ==========================================
-// 功能 5: 口說練習 (簡化程式碼保留功能)
+// 口說練習 (相容性防呆處理)
 // ==========================================
 function SpeakingPractice({ speak, setStats }) {
   const [question, setQuestion] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [score, setScore] = useState(null);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const generateQuestion = () => {
+  const generateQuestion = useCallback(() => {
     setQuestion(vocabDatabase[Math.floor(Math.random() * vocabDatabase.length)]);
-    setTranscript(''); setScore(null); setIsRecording(false);
-  };
-  useEffect(() => { generateQuestion(); }, []);
+    setTranscript(''); 
+    setScore(null); 
+    setIsRecording(false);
+    setErrorMsg('');
+  }, []);
+
+  useEffect(() => { generateQuestion(); }, [generateQuestion]);
 
   const handleSpeakClick = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return alert("瀏覽器不支援，請用 Chrome。");
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'ko-KR';
-    recognition.onstart = () => { setIsRecording(true); setTranscript(''); setScore(null); };
-    recognition.onresult = (e) => {
-      const speech = e.results[0][0].transcript;
-      setTranscript(speech);
-      let match = 0;
-      const target = question.example.replace(/[^\w\s\uAC00-\uD7A3]/g, '').replace(/\s+/g, '');
-      const spoken = speech.replace(/[^\w\s\uAC00-\uD7A3]/g, '').replace(/\s+/g, '');
-      for(let i=0; i<Math.min(target.length, spoken.length); i++) if(target[i]===spoken[i]) match++;
-      let finalScore = Math.round((match / Math.max(target.length, spoken.length)) * 100) || 0;
-      if (finalScore < 50 && spoken.length > 0) finalScore = Math.min(100, finalScore + 30);
-      setScore(finalScore);
-      if(finalScore >= 80) setStats(p => ({...p, speakingScore: p.speakingScore + 1}));
-    };
-    recognition.onend = () => setIsRecording(false);
-    recognition.start();
+    if (!SpeechRecognition) {
+      setErrorMsg("您的瀏覽器不支援語音辨識功能，建議使用最新版的 Google Chrome。");
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'ko-KR';
+      
+      recognition.onstart = () => { 
+        setIsRecording(true); 
+        setTranscript(''); 
+        setScore(null); 
+        setErrorMsg('');
+      };
+      
+      recognition.onresult = (e) => {
+        const speech = e.results[0][0].transcript;
+        setTranscript(speech);
+        
+        // 簡單字串比對算法 (去標點)
+        const target = question.example.replace(/[^\w\s\uAC00-\uD7A3]/g, '').replace(/\s+/g, '');
+        const spoken = speech.replace(/[^\w\s\uAC00-\uD7A3]/g, '').replace(/\s+/g, '');
+        let match = 0;
+        
+        for(let i=0; i<Math.min(target.length, spoken.length); i++) {
+          if(target[i] === spoken[i]) match++;
+        }
+        
+        let finalScore = Math.round((match / Math.max(target.length, spoken.length)) * 100) || 0;
+        if (finalScore < 50 && spoken.length > 0) finalScore = Math.min(100, finalScore + 30); // 寬容給分
+        if (target === spoken) finalScore = 100;
+
+        setScore(finalScore);
+        if(finalScore >= 80) setStats(p => ({...p, speakingScore: p.speakingScore + 1}));
+      };
+      
+      recognition.onerror = (e) => {
+        setIsRecording(false);
+        setErrorMsg("麥克風錯誤或未授權，請允許網站存取麥克風。(" + e.error + ")");
+      };
+
+      recognition.onend = () => setIsRecording(false);
+      
+      recognition.start();
+    } catch (err) {
+      setErrorMsg("啟動語音辨識時發生錯誤。");
+      setIsRecording(false);
+    }
   };
 
   if (!question) return null;
   return (
     <div className="max-w-2xl mx-auto flex flex-col items-center justify-center h-full text-center">
       <h2 className="text-2xl font-bold mb-8">口說發音評分</h2>
-      <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 w-full mb-8">
-        <p className="text-sm font-semibold text-indigo-500 mb-2">目標句 ({question.word})</p>
+      <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 w-full mb-8 relative">
+        <p className="text-sm font-semibold text-indigo-500 mb-2">目標句 ({question.word} - {question.meaning})</p>
         <p className="text-3xl font-bold text-slate-800 mb-4">{question.example}</p>
-        <button onClick={() => speak(question.example)} className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full"><Volume2 size={16} /> 聽範例發音</button>
+        <p className="text-slate-500 mb-6">{question.exampleMeaning}</p>
+        <button onClick={() => speak(question.example)} className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition"><Volume2 size={16} /> 聽範例發音</button>
       </div>
-      <button onClick={handleSpeakClick} disabled={isRecording} className={`w-24 h-24 rounded-full flex items-center justify-center text-white ${isRecording ? 'bg-red-500 animate-pulse scale-110' : 'bg-indigo-600 hover:scale-105'}`}><Mic size={40} /></button>
+      
+      <button onClick={handleSpeakClick} disabled={isRecording} className={`w-24 h-24 rounded-full flex items-center justify-center text-white transition-all ${isRecording ? 'bg-red-500 animate-pulse scale-110 shadow-lg shadow-red-200' : 'bg-indigo-600 hover:scale-105 shadow-lg shadow-indigo-200'}`}><Mic size={40} /></button>
+      <p className="mt-4 text-sm font-medium h-6 text-slate-400">{isRecording ? '正在聆聽...' : '點擊開始錄音'}</p>
+
+      {errorMsg && <p className="text-red-500 mt-4 bg-red-50 p-3 rounded-lg text-sm">{errorMsg}</p>}
+
       {transcript && (
-        <div className="mt-8 w-full bg-slate-50 p-6 rounded-2xl">
-          <p className="text-xl font-medium mb-4">你說的："{transcript}"</p>
+        <div className="mt-8 w-full bg-slate-50 border border-slate-200 p-6 rounded-2xl animate-fadeIn">
+          <p className="text-sm text-slate-500 mb-1">你說的：</p>
+          <p className="text-xl font-medium mb-4 text-slate-800">"{transcript}"</p>
           {score !== null && (
             <div className="flex flex-col items-center">
-              <div className={`text-5xl font-black mb-6 ${score >= 80 ? 'text-green-500' : 'text-red-500'}`}>{score} <span className="text-2xl">/ 100</span></div>
-              <button onClick={generateQuestion} className="px-6 py-3 bg-white border text-slate-700 rounded-xl font-semibold">挑戰下一句</button>
+              <div className={`text-5xl font-black mb-6 ${score >= 80 ? 'text-green-500' : score >= 50 ? 'text-orange-500' : 'text-red-500'}`}>{score} <span className="text-2xl text-slate-400">/ 100</span></div>
+              <button onClick={generateQuestion} className="px-8 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-100 flex items-center gap-2">挑戰下一句 <ArrowRight size={18}/></button>
             </div>
           )}
         </div>
