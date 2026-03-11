@@ -1,4 +1,4 @@
-[Kr7.html](https://github.com/user-attachments/files/25892561/Kr7.html)
+[韓文學習終極版本V8.html](https://github.com/user-attachments/files/25892699/V8.html)
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
@@ -52,12 +52,11 @@
     }
   </style>
 </head>
-<!-- 整個畫面就是一個可以滾動的容器，不再分割左右/上下 -->
 <body class="font-sans text-slate-800 h-[100dvh] w-full overflow-y-auto" id="app-container">
 
   <script>
     // ==========================================
-    // 內建 SVG 圖標庫 (保證不白屏)
+    // 內建 SVG 圖標庫
     // ==========================================
     const ICONS = {
       'book-open': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
@@ -162,7 +161,6 @@
 
     const allChars = vocabDatabase.map(w => w.word).join('').split('');
 
-    // 所有子頁面共用的超大返回按鈕
     const backBtnHtml = `
       <div class="w-full mb-6">
         <button onclick="switchTab('dashboard')" class="inline-flex items-center gap-2 px-5 py-3 bg-white hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 font-bold rounded-2xl shadow-sm border border-slate-200 transition-all active:scale-95">
@@ -205,7 +203,6 @@
       if (tabId === 'writing') initWriting();
       if (tabId === 'speaking') initSpeaking();
 
-      // 每次切換分頁，自動滾動到最頂
       document.getElementById('app-container').scrollTo(0,0);
       renderApp();
     }
@@ -217,7 +214,6 @@
       const container = document.getElementById('app-container');
       if (!container) return;
       
-      // 統一的內容包裝器
       container.innerHTML = `<div id="content-wrapper" class="w-full max-w-3xl mx-auto p-4 md:p-8 min-h-[100dvh] flex flex-col justify-center"></div>`;
       const wrapper = document.getElementById('content-wrapper');
 
@@ -231,20 +227,16 @@
       }
     }
 
-    // ==========================================
-    // 全新：控制中心主頁 (Dashboard)
-    // ==========================================
+    // --- Dashboard ---
     function renderDashboard(container) {
       container.innerHTML = `
-        <div class="animate-popIn w-full">
-          <!-- 標題區 -->
+        <div class="animate-popIn w-full py-4">
           <div class="text-center mb-10">
             <div class="inline-block px-4 py-1.5 bg-indigo-600 text-white font-bold rounded-full text-sm mb-3 tracking-widest">PRO</div>
             <h1 class="text-4xl md:text-5xl font-black text-slate-800 tracking-tight">TOPIK 1</h1>
             <p class="text-slate-500 mt-2 font-medium text-lg">韓語學習衝刺班</p>
           </div>
 
-          <!-- 精簡學習進度 -->
           <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-100 mb-8 mx-2">
             <div class="text-center flex-1">
               <div class="text-xs text-slate-400 font-bold mb-1">已學</div>
@@ -267,9 +259,7 @@
             </div>
           </div>
 
-          <!-- 九宮格大按鈕選單 -->
           <div class="grid grid-cols-2 gap-4 px-2">
-            
             <button onclick="switchTab('vocab')" class="bg-white border-2 border-blue-100 hover:border-blue-400 p-6 rounded-[2rem] flex flex-col items-center justify-center gap-4 transition-all active:scale-95 shadow-sm hover:shadow-md">
               <div class="p-4 bg-blue-50 text-blue-600 rounded-full">${getIcon('book-open', 'w-8 h-8')}</div>
               <span class="font-bold text-slate-700 text-lg">詞彙記憶</span>
@@ -290,7 +280,6 @@
               <span class="font-bold text-slate-700 text-lg">口說評分</span>
             </button>
 
-            <!-- 錯題本 (橫跨兩欄) -->
             <button onclick="switchTab('mistakes')" class="col-span-2 bg-slate-800 text-white border-2 border-slate-800 hover:bg-slate-700 p-6 rounded-[2rem] flex flex-row items-center justify-center gap-4 transition-all active:scale-95 shadow-lg relative overflow-hidden">
               <div class="absolute -right-4 -bottom-4 opacity-10 pointer-events-none">${getIcon('alert-circle', 'w-32 h-32')}</div>
               <div class="p-3 bg-white/20 rounded-full">${getIcon('pen-tool', 'w-6 h-6 text-white')}</div>
@@ -300,15 +289,12 @@
               </div>
               ${state.mistakes.size > 0 ? `<div class="absolute top-6 right-6 w-4 h-4 bg-red-500 rounded-full animate-pulse border-2 border-slate-800"></div>` : ''}
             </button>
-
           </div>
         </div>
       `;
     }
 
-    // ==========================================
-    // 詞彙記憶卡
-    // ==========================================
+    // --- Vocab ---
     function renderVocab(container) {
       const word = vocabDatabase[state.vocab.currentIndex];
       
@@ -323,7 +309,7 @@
         ` : `<p class="text-slate-400 text-sm mt-12 animate-pulse">點擊卡片查看解釋與例句</p>`;
 
       container.innerHTML = `
-        <div class="w-full flex-1 flex flex-col items-center justify-start animate-fadeIn py-6">
+        <div class="w-full flex-1 flex flex-col items-center justify-start animate-fadeIn py-4">
           ${backBtnHtml}
           
           <div class="w-full flex justify-between items-center mb-6 px-2">
@@ -352,9 +338,7 @@
     function nextVocab() { state.vocab.showMeaning = false; state.vocab.currentIndex = (state.vocab.currentIndex + 1) % vocabDatabase.length; state.stats.vocabLearned++; renderApp(); }
     function prevVocab() { state.vocab.showMeaning = false; state.vocab.currentIndex = (state.vocab.currentIndex - 1 + vocabDatabase.length) % vocabDatabase.length; renderApp(); }
 
-    // ==========================================
-    // 聽力測驗
-    // ==========================================
+    // --- Listening ---
     function initListening() {
       state.listen.selected = null;
       const correctWord = vocabDatabase[Math.floor(Math.random() * vocabDatabase.length)];
@@ -391,7 +375,7 @@
         ` : '';
 
       container.innerHTML = `
-        <div class="w-full flex-1 flex flex-col items-center justify-start animate-fadeIn py-6">
+        <div class="w-full flex-1 flex flex-col items-center justify-start animate-fadeIn py-4">
           ${backBtnHtml}
           <div class="w-full px-2 mb-10 flex flex-col items-center">
              <h2 class="text-2xl font-black text-slate-800 mb-2">聽力測驗</h2>
@@ -420,9 +404,7 @@
     }
     function nextListen() { initListening(); renderApp(); }
 
-    // ==========================================
-    // 拼字練習 (無鍵盤)
-    // ==========================================
+    // --- Writing ---
     function initWriting() {
       const randomWord = vocabDatabase[Math.floor(Math.random() * vocabDatabase.length)];
       state.write.question = randomWord;
@@ -500,7 +482,7 @@
       }
 
       container.innerHTML = `
-        <div class="w-full flex-1 flex flex-col items-center justify-start animate-fadeIn py-6">
+        <div class="w-full flex-1 flex flex-col items-center justify-start animate-fadeIn py-4">
           ${backBtnHtml}
           
           <div class="w-full bg-white p-6 md:p-10 rounded-[2.5rem] shadow-sm border border-slate-200 text-center relative overflow-hidden">
@@ -512,12 +494,8 @@
             
             <div class="h-12 mb-8 flex items-center justify-center">${hintHtml}</div>
             
-            <!-- 答案放置區 -->
             <div class="flex justify-center gap-3 mb-10 p-5 rounded-3xl border-2 shadow-inner ${slotsClass}">${answerHtml}</div>
-            
-            <!-- 字元選擇區 -->
             ${poolHtml}
-            
             <div class="flex flex-col items-center min-h-[6rem] w-full">${footerHtml}</div>
           </div>
         </div>
@@ -564,9 +542,7 @@
     }
     function nextWrite() { initWriting(); renderApp(); }
 
-    // ==========================================
-    // 口說練習
-    // ==========================================
+    // --- Speaking ---
     let recognitionInstance = null;
     function initSpeaking() {
       state.speak.question = vocabDatabase[Math.floor(Math.random() * vocabDatabase.length)];
@@ -600,7 +576,7 @@
       }
 
       container.innerHTML = `
-        <div class="w-full flex-1 flex flex-col items-center justify-start animate-fadeIn py-6">
+        <div class="w-full flex-1 flex flex-col items-center justify-start animate-fadeIn py-4">
           ${backBtnHtml}
           
           <div class="w-full px-2 mb-6 flex flex-col items-center">
@@ -629,7 +605,7 @@
 
     function handleSpeakClick() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) { state.speak.errorMsg = "非常抱歉，當前環境 (如 Koder) 不支援錄音。請在 Safari/Chrome 瀏覽器中打開。"; renderApp(); return; }
+      if (!SpeechRecognition) { state.speak.errorMsg = "當前環境不支援錄音，請用 Safari 或 Chrome 瀏覽器打開。"; renderApp(); return; }
       try {
         const recognition = new SpeechRecognition();
         recognitionInstance = recognition;
@@ -659,9 +635,7 @@
     }
     function nextSpeak() { initSpeaking(); renderApp(); }
 
-    // ==========================================
-    // 錯題本與手寫板 
-    // ==========================================
+    // --- Mistakes & Canvas ---
     let canvasCtx = null;
     let isDrawing = false;
 
@@ -697,7 +671,7 @@
         `;
 
       container.innerHTML = `
-        <div class="w-full flex-1 flex flex-col justify-start animate-fadeIn py-6">
+        <div class="w-full flex-1 flex flex-col justify-start animate-fadeIn py-4">
           ${backBtnHtml}
           <header class="mb-8 px-2 flex items-center gap-3">
             <div class="p-3 bg-red-50 text-red-600 rounded-xl">${getIcon('alert-circle', 'w-8 h-8')}</div>
@@ -721,39 +695,45 @@
       }
     }
 
+    // ==========================================
+    // 關鍵修復：針對手機排版大幅釋放「手寫畫布」的空間
+    // ==========================================
     function renderCanvasMode(container, word) {
       container.innerHTML = `
-        <div class="w-full flex-1 flex flex-col justify-start animate-fadeIn py-6">
+        <div class="w-full flex-1 flex flex-col justify-start animate-fadeIn py-4 md:py-6">
           
-          <div class="flex items-center justify-between mb-6">
-            <button onclick="closeCanvas()" class="text-slate-600 hover:text-slate-800 font-bold flex items-center gap-2 py-3 px-5 bg-white rounded-2xl shadow-sm border border-slate-200 active:scale-95 transition-transform">
-              ${getIcon('arrow-left', 'w-5 h-5')} 返回列表
+          <div class="flex items-center justify-between mb-4 md:mb-6">
+            <button onclick="closeCanvas()" class="text-slate-600 hover:text-slate-800 font-bold flex items-center gap-2 py-2 px-4 md:py-3 md:px-5 bg-white rounded-xl md:rounded-2xl shadow-sm border border-slate-200 active:scale-95 transition-transform text-sm md:text-base">
+              ${getIcon('arrow-left', 'w-4 h-4 md:w-5 md:h-5')} 返回列表
             </button>
-            <button onclick="speak('${word.word}')" class="p-4 bg-indigo-50 text-indigo-600 rounded-2xl shadow-sm hover:bg-indigo-100 active:scale-95 transition-transform">${getIcon('volume-2', 'w-6 h-6')}</button>
+            <button onclick="speak('${word.word}')" class="p-3 md:p-4 bg-indigo-50 text-indigo-600 rounded-xl md:rounded-2xl shadow-sm hover:bg-indigo-100 active:scale-95 transition-transform">${getIcon('volume-2', 'w-5 h-5 md:w-6 md:h-6')}</button>
           </div>
 
-          <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200 flex-1 flex flex-col relative overflow-hidden min-h-[500px]">
+          <div class="bg-white p-4 md:p-6 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border border-slate-200 flex-1 flex flex-col relative overflow-hidden min-h-[60vh] md:min-h-[500px]">
             
-            <div class="text-center mb-6 relative z-10 pointer-events-none">
-              <span class="text-sm font-black text-red-500 bg-red-50 px-4 py-1.5 rounded-full mb-3 inline-block">${word.pos}</span>
-              <p class="text-6xl md:text-7xl font-black text-slate-800 tracking-widest drop-shadow-sm">${word.word}</p>
-              <p class="text-xl font-bold text-slate-500 mt-2">${word.meaning}</p>
+            <!-- 縮細手機版頂部文字空間 -->
+            <div class="text-center mb-3 md:mb-6 relative z-10 pointer-events-none">
+              <span class="text-xs md:text-sm font-black text-red-500 bg-red-50 px-3 md:px-4 py-1 md:py-1.5 rounded-full mb-2 md:mb-3 inline-block">${word.pos}</span>
+              <p class="text-5xl md:text-7xl font-black text-slate-800 tracking-widest drop-shadow-sm leading-none">${word.word}</p>
+              <p class="text-lg md:text-xl font-bold text-slate-500 mt-2">${word.meaning}</p>
             </div>
 
-            <!-- 畫布區 -->
-            <div id="canvas-container" class="flex-1 relative border-4 border-slate-100 rounded-3xl overflow-hidden touch-none" style="background-color: #f8fafc; background-image: linear-gradient(#e2e8f0 2px, transparent 2px), linear-gradient(90deg, #e2e8f0 2px, transparent 2px); background-size: 60px 60px; background-position: center center;">
-              <p class="absolute top-4 left-0 w-full text-center text-slate-400 font-bold pointer-events-none select-none opacity-50">請在方格內手寫罰抄</p>
+            <!-- 畫布區 (加入 min-h-[300px] 確保手機必定有極大書寫空間) -->
+            <div id="canvas-container" class="flex-1 min-h-[300px] md:min-h-0 relative border-4 border-slate-100 rounded-[1.5rem] md:rounded-3xl overflow-hidden touch-none" style="background-color: #f8fafc; background-image: linear-gradient(#e2e8f0 2px, transparent 2px), linear-gradient(90deg, #e2e8f0 2px, transparent 2px); background-size: 60px 60px; background-position: center center;">
+              <p class="absolute top-4 left-0 w-full text-center text-slate-400 font-bold pointer-events-none select-none opacity-50 text-sm md:text-base">請在方格內手寫罰抄</p>
               <canvas id="drawing-canvas" class="w-full h-full cursor-crosshair absolute top-0 left-0 touch-none"></canvas>
             </div>
 
-            <div class="flex flex-col md:flex-row gap-3 mt-6">
-              <button onclick="clearCanvas()" class="w-full md:w-1/3 py-4 bg-slate-100 text-slate-600 font-black text-lg rounded-2xl hover:bg-slate-200 transition active:scale-95">
+            <!-- 縮細手機版底部按鈕厚度 -->
+            <div class="flex flex-col sm:flex-row gap-2 md:gap-3 mt-4 md:mt-6">
+              <button onclick="clearCanvas()" class="w-full sm:w-1/3 py-3 md:py-4 bg-slate-100 text-slate-600 font-black text-base md:text-lg rounded-xl md:rounded-2xl hover:bg-slate-200 transition active:scale-95">
                 清除重寫
               </button>
-              <button onclick="markLearnedFromCanvas()" class="w-full md:w-2/3 py-4 bg-slate-800 text-white font-black text-lg rounded-2xl hover:bg-slate-700 shadow-xl flex items-center justify-center gap-2 transition active:scale-95">
-                ${getIcon('check-circle-2', 'w-6 h-6 text-green-400')} 記住了，移出租題本
+              <button onclick="markLearnedFromCanvas()" class="w-full sm:w-2/3 py-3 md:py-4 bg-slate-800 text-white font-black text-base md:text-lg rounded-xl md:rounded-2xl hover:bg-slate-700 shadow-xl flex items-center justify-center gap-2 transition active:scale-95">
+                ${getIcon('check-circle-2', 'w-5 h-5 md:w-6 md:h-6 text-green-400')} 記住了，移出租題本
               </button>
             </div>
+
           </div>
         </div>
       `;
@@ -772,8 +752,8 @@
       
       canvasCtx = canvas.getContext('2d');
       canvasCtx.lineCap = 'round'; canvasCtx.lineJoin = 'round'; 
-      canvasCtx.lineWidth = 8; /* 加粗筆觸 */
-      canvasCtx.strokeStyle = '#1e293b'; /* 深石板灰，更像墨水 */
+      canvasCtx.lineWidth = 8; 
+      canvasCtx.strokeStyle = '#1e293b'; 
 
       canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mousemove', drawing);
       canvas.addEventListener('mouseup', stopDraw); canvas.addEventListener('mouseout', stopDraw);
@@ -797,11 +777,7 @@
       if (state.activeTab === 'mistakes' && state.mistakesView.selectedWord) initCanvasContext(); 
     });
 
-    // ==========================================
-    // 啟動應用程式
-    // ==========================================
     renderApp(); 
-
   </script>
 </body>
 </html>
