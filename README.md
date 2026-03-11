@@ -1,4 +1,4 @@
-[韓文遊戲6.html](https://github.com/user-attachments/files/25892389/6.html)
+[Kr7.txt](https://github.com/user-attachments/files/25892547/Kr7.txt)
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
@@ -13,6 +13,7 @@
     /* 防止手機/iPad 瀏覽器預設行為干擾手寫板 */
     body {
       -webkit-tap-highlight-color: transparent;
+      background-color: #f8fafc; /* slate-50 */
     }
     .touch-none {
       touch-action: none;
@@ -20,23 +21,22 @@
     
     /* 淡入動畫 */
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(15px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .animate-fadeIn {
-      animation: fadeIn 0.2s ease-out forwards;
+      animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .animate-popIn {
+      animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
 
-    /* 隱藏導航列捲軸 */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    /* App 風格的主要內容捲軸 */
+    /* App 風格的捲軸 */
     ::-webkit-scrollbar {
       width: 6px;
     }
@@ -52,34 +52,14 @@
     }
   </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 h-[100dvh] flex flex-col md:flex-row overflow-hidden">
-
-  <!-- 主要內容區 -->
-  <main class="flex-1 min-h-0 p-4 md:p-8 overflow-y-auto w-full relative order-1 md:order-2 scroll-smooth" id="main-content">
-    <!-- 內容將由 JavaScript 動態生成到這裡 -->
-  </main>
-
-  <!-- 底部導航欄 (手機/iPad直向) / 側邊導航欄 (電腦版) -->
-  <nav class="w-full md:w-64 bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:shadow-lg flex md:flex-col justify-around md:justify-start p-2 md:p-4 shrink-0 z-50 order-2 md:order-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:pb-4 border-t md:border-t-0 md:border-r border-slate-100 no-scrollbar overflow-x-auto">
-    <div class="hidden md:flex items-center gap-3 mb-8 px-2">
-      <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shrink-0">
-        PRO
-      </div>
-      <h1 class="text-xl font-bold text-slate-800 tracking-tight shrink-0">TOPIK 1<br/><span class="text-sm text-slate-500 font-normal">本地穩定版</span></h1>
-    </div>
-
-    <!-- 導航按鈕容器 -->
-    <div class="flex flex-row md:flex-col justify-around md:justify-start gap-1 md:gap-2 w-full" id="nav-container">
-      <!-- 導航按鈕將由 JavaScript 動態生成到這裡 -->
-    </div>
-  </nav>
+<!-- 整個畫面就是一個可以滾動的容器，不再分割左右/上下 -->
+<body class="font-sans text-slate-800 h-[100dvh] w-full overflow-y-auto" id="app-container">
 
   <script>
     // ==========================================
-    // 內建 SVG 圖標庫 (無須網路下載，保證不白屏)
+    // 內建 SVG 圖標庫 (保證不白屏)
     // ==========================================
     const ICONS = {
-      'home': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
       'book-open': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
       'headphones': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>`,
       'pen-tool': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>`,
@@ -182,10 +162,11 @@
 
     const allChars = vocabDatabase.map(w => w.word).join('').split('');
 
+    // 所有子頁面共用的超大返回按鈕
     const backBtnHtml = `
-      <div class="w-full flex justify-start mb-4 md:hidden">
-        <button onclick="switchTab('dashboard')" class="text-slate-500 hover:text-indigo-600 font-medium flex items-center gap-1 py-2 px-3 bg-white rounded-lg shadow-sm border border-slate-100 transition-colors">
-          ${getIcon('arrow-left', 'w-4 h-4')} 返回主頁
+      <div class="w-full mb-6">
+        <button onclick="switchTab('dashboard')" class="inline-flex items-center gap-2 px-5 py-3 bg-white hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 font-bold rounded-2xl shadow-sm border border-slate-200 transition-all active:scale-95">
+          ${getIcon('arrow-left', 'w-5 h-5')} 返回主選單
         </button>
       </div>
     `;
@@ -215,46 +196,7 @@
       }
     }
 
-    // 更新導航欄 UI
-    function renderNav() {
-      const navContainer = document.getElementById('nav-container');
-      if (!navContainer) return;
-      
-      const tabs = [
-        { id: 'dashboard', icon: 'home', label: '主頁' },
-        { id: 'vocab', icon: 'book-open', label: '詞彙' },
-        { id: 'listening', icon: 'headphones', label: '聽力' },
-        { id: 'writing', icon: 'pen-tool', label: '書寫' },
-        { id: 'speaking', icon: 'mic', label: '口說' },
-        { id: 'mistakes', icon: 'alert-circle', label: '錯題本', badge: state.mistakes.size }
-      ];
-
-      navContainer.innerHTML = tabs.map(tab => {
-        const isActive = state.activeTab === tab.id;
-        const baseClass = `flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 p-2 md:p-3 rounded-xl transition-all duration-200 w-full cursor-pointer relative`;
-        const colorClass = isActive ? 'text-indigo-600 md:bg-indigo-50 md:text-indigo-700 font-bold' : 'text-slate-400 hover:text-slate-600 md:hover:bg-slate-100 font-medium';
-        const iconColor = isActive ? 'text-indigo-600' : 'text-slate-400';
-        
-        let badgeHtml = '';
-        if (tab.badge && tab.badge > 0) {
-          badgeHtml = `<span class="absolute top-0 right-1 md:static md:ml-auto bg-red-500 text-white text-[10px] md:text-xs font-bold px-1.5 py-0.5 rounded-full border-2 border-white md:border-none shadow-sm min-w-[1.2rem] text-center">${tab.badge}</span>`;
-        }
-
-        return `
-          <button onclick="switchTab('${tab.id}')" class="${baseClass} ${colorClass}">
-            ${getIcon(tab.icon, `${iconColor} w-6 h-6 md:w-5 md:h-5 mb-0.5 md:mb-0 transition-transform ${isActive ? 'scale-110' : ''}`)}
-            <span class="text-[10px] md:text-base leading-none">${tab.label}</span>
-            ${badgeHtml}
-          </button>
-        `;
-      }).join('');
-    }
-
-    // 負責切換頁面的核心邏輯
     function switchTab(tabId) {
-      // 修復關鍵點：如果目標頁面跟當前一樣，就不要重畫 (但如果是切換畫布視圖則允許)
-      if (state.activeTab === tabId && !state.mistakesView.selectedWord) return;
-
       state.activeTab = tabId;
       state.mistakesView.selectedWord = null;
       
@@ -263,114 +205,144 @@
       if (tabId === 'writing') initWriting();
       if (tabId === 'speaking') initSpeaking();
 
+      // 每次切換分頁，自動滾動到最頂
+      document.getElementById('app-container').scrollTo(0,0);
       renderApp();
     }
 
-    function addMistake(id) { state.mistakes.add(id); renderNav(); }
-    function removeMistake(id) { state.mistakes.delete(id); renderNav(); }
+    function addMistake(id) { state.mistakes.add(id); }
+    function removeMistake(id) { state.mistakes.delete(id); }
 
-    // 負責把 HTML 塞進畫面的函數
     function renderApp() {
-      renderNav();
-      const mainContent = document.getElementById('main-content');
-      if (!mainContent) return;
-      mainContent.innerHTML = ''; 
+      const container = document.getElementById('app-container');
+      if (!container) return;
+      
+      // 統一的內容包裝器
+      container.innerHTML = `<div id="content-wrapper" class="w-full max-w-3xl mx-auto p-4 md:p-8 min-h-[100dvh] flex flex-col justify-center"></div>`;
+      const wrapper = document.getElementById('content-wrapper');
 
       switch (state.activeTab) {
-        case 'dashboard': renderDashboard(mainContent); break;
-        case 'vocab': renderVocab(mainContent); break;
-        case 'listening': renderListening(mainContent); break;
-        case 'writing': renderWriting(mainContent); break;
-        case 'speaking': renderSpeaking(mainContent); break;
-        case 'mistakes': renderMistakes(mainContent); break;
+        case 'dashboard': renderDashboard(wrapper); break;
+        case 'vocab': renderVocab(wrapper); break;
+        case 'listening': renderListening(wrapper); break;
+        case 'writing': renderWriting(wrapper); break;
+        case 'speaking': renderSpeaking(wrapper); break;
+        case 'mistakes': renderMistakes(wrapper); break;
       }
     }
 
-    // --- Dashboard ---
+    // ==========================================
+    // 全新：控制中心主頁 (Dashboard)
+    // ==========================================
     function renderDashboard(container) {
       container.innerHTML = `
-        <div class="max-w-4xl mx-auto space-y-6 animate-fadeIn pb-10">
-          <header class="mb-8">
-            <h2 class="text-3xl font-bold text-slate-800">歡迎來到旗艦版！🚀</h2>
-            <p class="text-slate-500 mt-2">系統已徹底修復：確保 100% 完美相容所有預覽器和本地 App，再也不會白屏！</p>
-          </header>
+        <div class="animate-popIn w-full">
+          <!-- 標題區 -->
+          <div class="text-center mb-10">
+            <div class="inline-block px-4 py-1.5 bg-indigo-600 text-white font-bold rounded-full text-sm mb-3 tracking-widest">PRO</div>
+            <h1 class="text-4xl md:text-5xl font-black text-slate-800 tracking-tight">TOPIK 1</h1>
+            <p class="text-slate-500 mt-2 font-medium text-lg">韓語學習衝刺班</p>
+          </div>
 
-          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-            ${createStatCard('已學詞彙', state.stats.vocabLearned, 'book-open', 'text-blue-500', 'bg-blue-50')}
-            ${createStatCard('聽力得分', state.stats.listeningScore, 'headphones', 'text-purple-500', 'bg-purple-50')}
-            ${createStatCard('拼字得分', state.stats.writingScore, 'edit-3', 'text-green-500', 'bg-green-50')}
-            ${createStatCard('口說達標', state.stats.speakingScore, 'mic', 'text-orange-500', 'bg-orange-50')}
+          <!-- 精簡學習進度 -->
+          <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-100 mb-8 mx-2">
+            <div class="text-center flex-1">
+              <div class="text-xs text-slate-400 font-bold mb-1">已學</div>
+              <div class="font-black text-xl text-blue-600">${state.stats.vocabLearned}</div>
+            </div>
+            <div class="w-px h-8 bg-slate-100"></div>
+            <div class="text-center flex-1">
+              <div class="text-xs text-slate-400 font-bold mb-1">聽力</div>
+              <div class="font-black text-xl text-purple-600">${state.stats.listeningScore}</div>
+            </div>
+            <div class="w-px h-8 bg-slate-100"></div>
+            <div class="text-center flex-1">
+              <div class="text-xs text-slate-400 font-bold mb-1">拼字</div>
+              <div class="font-black text-xl text-green-600">${state.stats.writingScore}</div>
+            </div>
+            <div class="w-px h-8 bg-slate-100"></div>
+            <div class="text-center flex-1">
+              <div class="text-xs text-slate-400 font-bold mb-1">口說</div>
+              <div class="font-black text-xl text-orange-600">${state.stats.speakingScore}</div>
+            </div>
+          </div>
+
+          <!-- 九宮格大按鈕選單 -->
+          <div class="grid grid-cols-2 gap-4 px-2">
             
-            <div onclick="state.activeTab=''; switchTab('mistakes')" class="bg-red-50 p-5 rounded-2xl shadow-sm border border-red-100 flex flex-col items-center text-center cursor-pointer hover:bg-red-100 transition transform hover:-translate-y-1">
-              <div class="p-3 rounded-full bg-white text-red-500 mb-3">${getIcon('alert-circle', 'w-6 h-6')}</div>
-              <p class="text-red-600 text-sm font-medium">待複習錯題</p>
-              <p class="text-2xl font-bold text-red-700">${state.mistakes.size}</p>
-            </div>
-          </div>
+            <button onclick="switchTab('vocab')" class="bg-white border-2 border-blue-100 hover:border-blue-400 p-6 rounded-[2rem] flex flex-col items-center justify-center gap-4 transition-all active:scale-95 shadow-sm hover:shadow-md">
+              <div class="p-4 bg-blue-50 text-blue-600 rounded-full">${getIcon('book-open', 'w-8 h-8')}</div>
+              <span class="font-bold text-slate-700 text-lg">詞彙記憶</span>
+            </button>
 
-          <div class="mt-8 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-            <h3 class="text-xl font-bold mb-4">精選功能捷徑</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button onclick="state.activeTab=''; switchTab('writing')" class="flex flex-col items-start p-6 rounded-2xl border-2 border-transparent transition-all text-left bg-indigo-50 text-indigo-600 hover:border-indigo-200">
-                ${getIcon('edit-3', 'w-6 h-6 mb-4')}
-                <h4 class="font-bold text-lg mb-1">無鍵盤拼字練習</h4>
-                <p class="text-sm opacity-80">點擊方塊拼出單字，完全不需要切換韓文輸入法。</p>
-              </button>
-              <button onclick="state.activeTab=''; switchTab('mistakes')" class="flex flex-col items-start p-6 rounded-2xl border-2 border-transparent transition-all text-left bg-red-50 text-red-600 hover:border-red-200">
-                ${getIcon('pen-tool', 'w-6 h-6 mb-4')}
-                <h4 class="font-bold text-lg mb-1">錯題手寫板 (罰抄)</h4>
-                <p class="text-sm opacity-80">親筆寫下錯過的單字，支援觸控筆與手指畫畫操作。</p>
-              </button>
-            </div>
+            <button onclick="switchTab('listening')" class="bg-white border-2 border-purple-100 hover:border-purple-400 p-6 rounded-[2rem] flex flex-col items-center justify-center gap-4 transition-all active:scale-95 shadow-sm hover:shadow-md">
+              <div class="p-4 bg-purple-50 text-purple-600 rounded-full">${getIcon('headphones', 'w-8 h-8')}</div>
+              <span class="font-bold text-slate-700 text-lg">聽力測驗</span>
+            </button>
+
+            <button onclick="switchTab('writing')" class="bg-white border-2 border-green-100 hover:border-green-400 p-6 rounded-[2rem] flex flex-col items-center justify-center gap-4 transition-all active:scale-95 shadow-sm hover:shadow-md">
+              <div class="p-4 bg-green-50 text-green-600 rounded-full">${getIcon('edit-3', 'w-8 h-8')}</div>
+              <span class="font-bold text-slate-700 text-lg">無鍵盤拼字</span>
+            </button>
+
+            <button onclick="switchTab('speaking')" class="bg-white border-2 border-orange-100 hover:border-orange-400 p-6 rounded-[2rem] flex flex-col items-center justify-center gap-4 transition-all active:scale-95 shadow-sm hover:shadow-md">
+              <div class="p-4 bg-orange-50 text-orange-600 rounded-full">${getIcon('mic', 'w-8 h-8')}</div>
+              <span class="font-bold text-slate-700 text-lg">口說評分</span>
+            </button>
+
+            <!-- 錯題本 (橫跨兩欄) -->
+            <button onclick="switchTab('mistakes')" class="col-span-2 bg-slate-800 text-white border-2 border-slate-800 hover:bg-slate-700 p-6 rounded-[2rem] flex flex-row items-center justify-center gap-4 transition-all active:scale-95 shadow-lg relative overflow-hidden">
+              <div class="absolute -right-4 -bottom-4 opacity-10 pointer-events-none">${getIcon('alert-circle', 'w-32 h-32')}</div>
+              <div class="p-3 bg-white/20 rounded-full">${getIcon('pen-tool', 'w-6 h-6 text-white')}</div>
+              <div class="text-left">
+                <span class="font-bold text-xl block">錯題手寫板</span>
+                <span class="text-sm text-slate-300">目前累積 ${state.mistakes.size} 個生字</span>
+              </div>
+              ${state.mistakes.size > 0 ? `<div class="absolute top-6 right-6 w-4 h-4 bg-red-500 rounded-full animate-pulse border-2 border-slate-800"></div>` : ''}
+            </button>
+
           </div>
         </div>
       `;
     }
 
-    function createStatCard(title, value, icon, iconColor, bgColor) {
-      return `
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center">
-          <div class="p-3 rounded-full ${bgColor} ${iconColor} mb-3">${getIcon(icon, 'w-6 h-6')}</div>
-          <p class="text-slate-500 text-sm font-medium">${title}</p>
-          <p class="text-2xl font-bold text-slate-800">${value}</p>
-        </div>
-      `;
-    }
-
-    // --- Vocab ---
+    // ==========================================
+    // 詞彙記憶卡
+    // ==========================================
     function renderVocab(container) {
       const word = vocabDatabase[state.vocab.currentIndex];
       
       let contentHtml = state.vocab.showMeaning ? `
-          <div class="text-center animate-fadeIn w-full">
+          <div class="text-center animate-fadeIn w-full mt-8">
             <p class="text-2xl text-slate-700 font-medium mb-6">${word.meaning}</p>
-            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-              <p class="text-lg mb-2">${word.example}</p>
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+              <p class="text-lg mb-2 text-slate-800">${word.example}</p>
               <p class="text-sm text-slate-500">${word.exampleMeaning}</p>
             </div>
           </div>
-        ` : `<p class="text-slate-400 text-sm mt-8 animate-pulse">點擊卡片查看解釋</p>`;
+        ` : `<p class="text-slate-400 text-sm mt-12 animate-pulse">點擊卡片查看解釋與例句</p>`;
 
       container.innerHTML = `
-        <div class="max-w-2xl mx-auto flex flex-col items-center justify-center h-full animate-fadeIn pb-10">
+        <div class="w-full flex-1 flex flex-col items-center justify-start animate-fadeIn py-6">
           ${backBtnHtml}
-          <div class="w-full flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold hidden md:block">詞彙記憶卡 (60字)</h2>
-            <span class="text-slate-400 bg-white px-3 py-1 rounded-full text-sm border shadow-sm md:ml-auto">${state.vocab.currentIndex + 1} / ${vocabDatabase.length}</span>
+          
+          <div class="w-full flex justify-between items-center mb-6 px-2">
+            <h2 class="text-2xl font-black text-slate-800">詞彙記憶卡</h2>
+            <span class="text-slate-500 bg-white px-4 py-1.5 rounded-full text-sm font-bold border border-slate-200 shadow-sm">${state.vocab.currentIndex + 1} <span class="text-slate-300">/</span> ${vocabDatabase.length}</span>
           </div>
           
-          <div onclick="toggleVocabMeaning()" class="w-full aspect-[4/3] md:aspect-[16/9] bg-white rounded-3xl shadow-md border border-slate-100 flex flex-col items-center justify-center p-8 cursor-pointer relative select-none">
-            <button onclick="event.stopPropagation(); speak('${word.word}')" class="absolute top-6 right-6 p-3 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 transition">
+          <div onclick="toggleVocabMeaning()" class="w-full min-h-[300px] bg-white rounded-[2.5rem] shadow-sm border border-slate-200 flex flex-col items-center justify-center p-8 cursor-pointer relative select-none transition-transform active:scale-[0.98]">
+            <button onclick="event.stopPropagation(); speak('${word.word}')" class="absolute top-6 right-6 p-4 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 transition">
               ${getIcon('volume-2', 'w-6 h-6')}
             </button>
-            <span class="text-sm font-semibold text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full mb-4">${word.pos}</span>
-            <h3 class="text-5xl md:text-7xl font-bold text-slate-800 mb-6 text-center">${word.word}</h3>
+            <span class="text-sm font-bold text-indigo-500 bg-indigo-50 px-4 py-1.5 rounded-full mb-6">${word.pos}</span>
+            <h3 class="text-6xl md:text-7xl font-black text-slate-800 text-center tracking-wide">${word.word}</h3>
             ${contentHtml}
           </div>
           
           <div class="flex gap-4 mt-8 w-full">
-            <button onclick="prevVocab()" class="flex-1 py-4 bg-white border border-slate-200 rounded-xl font-semibold text-slate-600 hover:bg-slate-50 transition shadow-sm">上一張</button>
-            <button onclick="nextVocab()" class="flex-1 py-4 bg-indigo-600 rounded-xl font-semibold text-white hover:bg-indigo-700 transition shadow-md shadow-indigo-200">下一張</button>
+            <button onclick="prevVocab()" class="flex-1 py-5 bg-white border-2 border-slate-200 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition active:scale-95 text-lg">上一張</button>
+            <button onclick="nextVocab()" class="flex-1 py-5 bg-indigo-600 rounded-2xl font-bold text-white hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 active:scale-95 text-lg">下一張</button>
           </div>
         </div>
       `;
@@ -380,7 +352,9 @@
     function nextVocab() { state.vocab.showMeaning = false; state.vocab.currentIndex = (state.vocab.currentIndex + 1) % vocabDatabase.length; state.stats.vocabLearned++; renderApp(); }
     function prevVocab() { state.vocab.showMeaning = false; state.vocab.currentIndex = (state.vocab.currentIndex - 1 + vocabDatabase.length) % vocabDatabase.length; renderApp(); }
 
-    // --- Listening ---
+    // ==========================================
+    // 聽力測驗
+    // ==========================================
     function initListening() {
       state.listen.selected = null;
       const correctWord = vocabDatabase[Math.floor(Math.random() * vocabDatabase.length)];
@@ -398,30 +372,36 @@
       const { question, options, selected } = state.listen;
 
       let optionsHtml = options.map((opt, idx) => {
-        let btnClass = "py-4 px-6 bg-white border-2 rounded-2xl text-lg font-medium transition-all text-slate-700 ";
+        let btnClass = "py-5 px-6 bg-white border-2 rounded-2xl text-xl font-bold transition-all text-slate-700 ";
         let disabled = selected !== null ? "disabled" : "";
-        if (!selected) btnClass += "border-slate-100 hover:border-indigo-300 shadow-sm";
+        if (!selected) btnClass += "border-slate-200 hover:border-indigo-400 active:scale-95 shadow-sm";
         else if (opt.id === question.id) btnClass += "border-green-500 bg-green-50 text-green-700 shadow-sm";
         else if (selected.id === opt.id) btnClass += "border-red-500 bg-red-50 text-red-700 shadow-sm";
-        else btnClass += "border-slate-100 opacity-50";
+        else btnClass += "border-slate-100 opacity-40";
 
         return `<button onclick="handleListenSelect(${idx})" class="${btnClass}" ${disabled}>${opt.meaning}</button>`;
       }).join('');
 
       let resultHtml = selected ? `
-          <div class="mt-8 flex flex-col items-center animate-fadeIn w-full">
-            <p class="text-slate-600 mb-6 text-center"><span class="font-bold text-2xl mr-2">${question.word}</span></p>
-            <button onclick="nextListen()" class="w-full md:w-auto px-8 py-4 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 flex justify-center items-center gap-2 shadow-md">下一題 ${getIcon('arrow-right', 'w-5 h-5')}</button>
+          <div class="mt-8 flex flex-col items-center animate-fadeIn w-full bg-slate-100 p-6 rounded-3xl">
+            <p class="text-slate-500 font-bold mb-2">正確答案是</p>
+            <p class="text-slate-800 mb-6 text-center"><span class="font-black text-4xl">${question.word}</span></p>
+            <button onclick="nextListen()" class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 flex justify-center items-center gap-2 shadow-lg active:scale-95">下一題 ${getIcon('arrow-right', 'w-5 h-5')}</button>
           </div>
         ` : '';
 
       container.innerHTML = `
-        <div class="max-w-2xl mx-auto flex flex-col items-center justify-center h-full animate-fadeIn pb-10">
+        <div class="w-full flex-1 flex flex-col items-center justify-start animate-fadeIn py-6">
           ${backBtnHtml}
-          <h2 class="text-2xl font-bold mb-8 md:block hidden">聽力測驗</h2>
-          <button onclick="speak('${question.word}')" class="w-24 h-24 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center hover:bg-indigo-200 transition-all shadow-inner mb-12 mt-4 md:mt-0">
-            ${getIcon('volume-2', 'w-10 h-10')}
+          <div class="w-full px-2 mb-10 flex flex-col items-center">
+             <h2 class="text-2xl font-black text-slate-800 mb-2">聽力測驗</h2>
+             <p class="text-slate-500 text-sm font-medium">點擊播放發音，選出正確的中文意思</p>
+          </div>
+          
+          <button onclick="speak('${question.word}')" class="w-32 h-32 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center hover:bg-indigo-200 transition-transform active:scale-90 shadow-inner mb-12 border-4 border-white outline outline-4 outline-indigo-50">
+            ${getIcon('volume-2', 'w-14 h-14 ml-2')}
           </button>
+          
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
             ${optionsHtml}
           </div>
@@ -440,11 +420,14 @@
     }
     function nextListen() { initListening(); renderApp(); }
 
-    // --- Writing ---
+    // ==========================================
+    // 拼字練習 (無鍵盤)
+    // ==========================================
     function initWriting() {
       const randomWord = vocabDatabase[Math.floor(Math.random() * vocabDatabase.length)];
       state.write.question = randomWord;
       const targetChars = randomWord.word.split('');
+      const allChars = vocabDatabase.map(w => w.word).join('').split('');
       let distractors = [];
       while (distractors.length < 4) {
         const randChar = allChars[Math.floor(Math.random() * allChars.length)];
@@ -476,59 +459,66 @@
       if (!state.write.question) return;
       const { question, pool, answer, status, hintLevel } = state.write;
 
-      let hintHtml = hintLevel === 1 ? `<div class="text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg font-bold text-xl border border-indigo-100">初聲提示：${getChoSeong(question.word)}</div>` :
-                     hintLevel === 2 ? `<div class="text-red-500 bg-red-50 px-4 py-2 rounded-lg font-bold text-xl border border-red-100">答案：${question.word}</div>` : '';
+      let hintHtml = hintLevel === 1 ? `<div class="text-indigo-600 bg-indigo-50 px-5 py-2 rounded-xl font-bold text-xl border border-indigo-100">初聲提示：${getChoSeong(question.word)}</div>` :
+                     hintLevel === 2 ? `<div class="text-red-500 bg-red-50 px-5 py-2 rounded-xl font-bold text-xl border border-red-100">答案：${question.word}</div>` : '';
 
-      let slotsClass = status === 'wrong' ? 'bg-red-50 border-red-200' : status === 'correct' ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200';
+      let slotsClass = status === 'wrong' ? 'bg-red-50 border-red-300 shadow-red-100' : status === 'correct' ? 'bg-green-50 border-green-400 shadow-green-100' : 'bg-slate-100 border-slate-200';
       let answerHtml = answer.map((item, idx) => {
-        let boxClass = item ? 'bg-indigo-600 text-white shadow-md cursor-pointer hover:bg-indigo-700' : 'bg-white border-2 border-dashed border-slate-300 text-slate-300';
-        return `<div onclick="handleWriteAnswerClick(${idx})" class="w-12 h-12 sm:w-14 sm:h-14 md:w-20 md:h-20 flex items-center justify-center text-2xl md:text-3xl font-bold rounded-xl transition-all ${boxClass}">${item ? item.char : ''}</div>`;
+        let boxClass = item ? 'bg-indigo-600 text-white shadow-md cursor-pointer hover:bg-indigo-700 border border-indigo-700' : 'bg-white border-2 border-dashed border-slate-300 text-transparent';
+        return `<div onclick="handleWriteAnswerClick(${idx})" class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center text-3xl font-black rounded-2xl transition-all active:scale-95 ${boxClass}">${item ? item.char : '空'}</div>`;
       }).join('');
 
       let poolHtml = status === 'playing' ? `
-          <div class="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8">
+          <div class="flex flex-wrap justify-center gap-3 mb-8">
             ${pool.map((item, idx) => `
-              <button onclick="handleWritePoolClick(${idx})" class="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white border-2 border-slate-200 rounded-xl text-xl md:text-2xl font-bold text-slate-700 hover:border-indigo-400 hover:text-indigo-600 hover:-translate-y-1 transition-all shadow-sm">${item.char}</button>
+              <button onclick="handleWritePoolClick(${idx})" class="w-16 h-16 md:w-16 md:h-16 bg-white border-2 border-slate-200 rounded-2xl text-2xl font-black text-slate-700 hover:border-indigo-400 hover:text-indigo-600 hover:-translate-y-1 transition-all shadow-sm active:scale-90">${item.char}</button>
             `).join('')}
           </div>
         ` : '';
 
       let footerHtml = '';
       if (status === 'playing') {
-        let btnText = hintLevel === 0 ? '不知道怎麼拼？(看提示)' : hintLevel === 1 ? '直接看答案' : '已顯示答案';
-        let btnClass = hintLevel === 2 ? 'bg-slate-100 text-slate-300' : 'text-slate-500 underline hover:text-slate-800';
-        footerHtml = `<button type="button" onclick="requestWriteHint()" ${hintLevel === 2 ? 'disabled' : ''} class="px-6 py-2 rounded-xl transition ${btnClass}">${btnText}</button>`;
+        let btnText = hintLevel === 0 ? '需要提示？' : hintLevel === 1 ? '直接看答案' : '已顯示答案';
+        let btnClass = hintLevel === 2 ? 'bg-slate-200 text-slate-400' : 'bg-slate-800 text-white hover:bg-slate-700 shadow-md active:scale-95';
+        footerHtml = `<button type="button" onclick="requestWriteHint()" ${hintLevel === 2 ? 'disabled' : ''} class="px-8 py-3 rounded-full font-bold transition ${btnClass}">${btnText}</button>`;
       } else if (status === 'wrong') {
         footerHtml = `
           <div class="animate-fadeIn w-full flex flex-col items-center">
-            <p class="text-red-500 font-bold mb-3 flex items-center justify-center">${getIcon('x-circle', 'mr-1 w-5 h-5')} 拼錯囉，請重試！</p>
-            <button onclick="resetWriteBoard()" class="px-6 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 font-semibold shadow-sm">清空重拼</button>
+            <p class="text-red-500 font-bold mb-4 flex items-center justify-center text-lg">${getIcon('x-circle', 'mr-2 w-6 h-6')} 拼錯囉，請重試！</p>
+            <button onclick="resetWriteBoard()" class="px-8 py-4 bg-slate-200 text-slate-700 rounded-2xl hover:bg-slate-300 font-black shadow-sm active:scale-95 w-full">清空重拼</button>
           </div>
         `;
       } else if (status === 'correct') {
         footerHtml = `
           <div class="animate-fadeIn w-full flex flex-col items-center">
-            <p class="text-green-600 font-bold text-lg mb-4 flex items-center gap-1">${getIcon('check-circle-2', 'w-5 h-5')} 完全正確！</p>
-            <button onclick="nextWrite()" class="w-full py-4 bg-slate-800 text-white rounded-xl font-semibold hover:bg-slate-900 transition-colors flex justify-center items-center gap-2 shadow-md">
-              挑戰下一題 ${getIcon('arrow-right', 'w-5 h-5')}
+            <p class="text-green-600 font-bold text-xl mb-6 flex items-center gap-2">${getIcon('check-circle-2', 'w-8 h-8')} 完全正確！</p>
+            <button onclick="nextWrite()" class="w-full py-5 bg-green-500 text-white rounded-2xl font-black text-xl hover:bg-green-600 transition-colors flex justify-center items-center gap-2 shadow-lg active:scale-95">
+              挑戰下一題 ${getIcon('arrow-right', 'w-6 h-6')}
             </button>
           </div>
         `;
       }
 
       container.innerHTML = `
-        <div class="max-w-xl mx-auto flex flex-col items-center justify-center h-full animate-fadeIn pb-10">
+        <div class="w-full flex-1 flex flex-col items-center justify-start animate-fadeIn py-6">
           ${backBtnHtml}
-          <div class="w-full bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 text-center relative overflow-hidden">
-            <h2 class="text-xl font-bold text-slate-500 mb-2">拼字遊戲 (無鍵盤模式)</h2>
-            <div class="flex justify-center items-end gap-3 mb-6">
-              <p class="text-5xl font-black text-slate-800">${question.meaning}</p>
-              <span class="text-sm font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded mb-1">${question.pos}</span>
+          
+          <div class="w-full bg-white p-6 md:p-10 rounded-[2.5rem] shadow-sm border border-slate-200 text-center relative overflow-hidden">
+            <h2 class="text-xl font-bold text-slate-400 mb-2">請拼出以下單字</h2>
+            <div class="flex justify-center items-end gap-3 mb-8">
+              <p class="text-5xl font-black text-slate-800 tracking-wide">${question.meaning}</p>
+              <span class="text-sm font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-lg mb-1">${question.pos}</span>
             </div>
-            <div class="h-12 mb-6 flex items-center justify-center">${hintHtml}</div>
-            <div class="flex justify-center gap-2 md:gap-3 mb-8 p-4 rounded-2xl border ${slotsClass}">${answerHtml}</div>
+            
+            <div class="h-12 mb-8 flex items-center justify-center">${hintHtml}</div>
+            
+            <!-- 答案放置區 -->
+            <div class="flex justify-center gap-3 mb-10 p-5 rounded-3xl border-2 shadow-inner ${slotsClass}">${answerHtml}</div>
+            
+            <!-- 字元選擇區 -->
             ${poolHtml}
-            <div class="flex flex-col items-center min-h-[6rem]">${footerHtml}</div>
+            
+            <div class="flex flex-col items-center min-h-[6rem] w-full">${footerHtml}</div>
           </div>
         </div>
       `;
@@ -574,7 +564,9 @@
     }
     function nextWrite() { initWriting(); renderApp(); }
 
-    // --- Speaking ---
+    // ==========================================
+    // 口說練習
+    // ==========================================
     let recognitionInstance = null;
     function initSpeaking() {
       state.speak.question = vocabDatabase[Math.floor(Math.random() * vocabDatabase.length)];
@@ -586,43 +578,50 @@
       if (!state.speak.question) return;
       const { question, isRecording, transcript, score, errorMsg } = state.speak;
 
-      let btnClass = isRecording ? 'bg-red-500 animate-pulse scale-110 shadow-lg shadow-red-200' : 'bg-indigo-600 hover:scale-105 shadow-lg shadow-indigo-200';
+      let btnClass = isRecording ? 'bg-red-500 animate-pulse scale-110 shadow-xl shadow-red-200 border-4 border-red-200' : 'bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-200 border-4 border-white outline outline-4 outline-indigo-50 active:scale-95';
       let resultHtml = '';
       
       if (transcript) {
         let scoreHtml = score !== null ? `
-            <div class="flex flex-col items-center">
-              <div class="text-5xl font-black mb-6 ${score >= 80 ? 'text-green-500' : score >= 50 ? 'text-orange-500' : 'text-red-500'}">${score} <span class="text-2xl text-slate-400">/ 100</span></div>
-              <button onclick="nextSpeak()" class="px-8 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-100 flex items-center gap-2 shadow-sm">挑戰下一句 ${getIcon('arrow-right', 'w-5 h-5')}</button>
+            <div class="flex flex-col items-center mt-4">
+              <div class="text-sm font-bold text-slate-400 mb-1">AI 發音評分</div>
+              <div class="text-6xl font-black mb-8 ${score >= 80 ? 'text-green-500' : score >= 50 ? 'text-orange-500' : 'text-red-500'}">${score} <span class="text-2xl text-slate-300">/ 100</span></div>
+              <button onclick="nextSpeak()" class="w-full py-4 bg-slate-800 text-white rounded-2xl font-bold text-lg hover:bg-slate-700 flex justify-center items-center gap-2 active:scale-95 shadow-md">挑戰下一句 ${getIcon('arrow-right', 'w-5 h-5')}</button>
             </div>
           ` : '';
         resultHtml = `
-          <div class="mt-8 w-full bg-slate-50 border border-slate-200 p-6 rounded-2xl animate-fadeIn">
-            <p class="text-sm text-slate-500 mb-1">你說的：</p>
-            <p class="text-xl font-medium mb-4 text-slate-800">"${transcript}"</p>
+          <div class="mt-8 w-full bg-white border-2 border-slate-100 p-6 rounded-[2rem] shadow-sm animate-fadeIn text-center">
+            <p class="text-sm text-slate-400 font-bold mb-2">系統辨識結果：</p>
+            <p class="text-2xl font-black mb-4 text-slate-700">"${transcript}"</p>
+            <div class="w-full h-px bg-slate-100 mb-4"></div>
             ${scoreHtml}
           </div>
         `;
       }
 
       container.innerHTML = `
-        <div class="max-w-2xl mx-auto flex flex-col items-center justify-center h-full text-center animate-fadeIn pb-10">
+        <div class="w-full flex-1 flex flex-col items-center justify-start animate-fadeIn py-6">
           ${backBtnHtml}
-          <h2 class="text-2xl font-bold mb-8 hidden md:block">口說發音評分</h2>
-          <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 w-full mb-8 relative">
-            <p class="text-sm font-semibold text-indigo-500 mb-2">目標句 (${question.word} - ${question.meaning})</p>
-            <p class="text-3xl font-bold text-slate-800 mb-4">${question.example}</p>
-            <p class="text-slate-500 mb-6">${question.exampleMeaning}</p>
-            <button onclick="speak('${question.example}')" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition">
-              ${getIcon('volume-2', 'w-4 h-4')} 聽範例發音
+          
+          <div class="w-full px-2 mb-6 flex flex-col items-center">
+             <h2 class="text-2xl font-black text-slate-800 mb-2">口說發音評分</h2>
+          </div>
+
+          <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200 w-full mb-10 relative text-center">
+            <p class="text-sm font-black text-indigo-500 bg-indigo-50 inline-block px-4 py-1.5 rounded-full mb-4">目標句 (${question.word} - ${question.meaning})</p>
+            <p class="text-4xl font-black text-slate-800 mb-4 leading-tight">${question.example}</p>
+            <p class="text-slate-500 font-medium mb-8">${question.exampleMeaning}</p>
+            <button onclick="speak('${question.example}')" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-100 text-slate-600 font-bold rounded-full hover:bg-slate-200 transition active:scale-95 w-full md:w-auto">
+              ${getIcon('volume-2', 'w-5 h-5')} 聽老師讀一次
             </button>
           </div>
           
-          <button onclick="handleSpeakClick()" ${isRecording ? 'disabled' : ''} class="w-24 h-24 rounded-full flex items-center justify-center text-white transition-all ${btnClass}">
-            ${getIcon('mic', 'w-10 h-10')}
+          <button onclick="handleSpeakClick()" ${isRecording ? 'disabled' : ''} class="w-28 h-28 rounded-full flex items-center justify-center text-white transition-all ${btnClass}">
+            ${getIcon('mic', 'w-12 h-12')}
           </button>
-          <p class="mt-4 text-sm font-medium h-6 text-slate-400">${isRecording ? '正在聆聽...' : '點擊開始錄音'}</p>
-          ${errorMsg ? `<p class="text-red-500 mt-4 bg-red-50 p-3 rounded-lg text-sm">${errorMsg}</p>` : ''}
+          <p class="mt-6 text-sm font-bold h-6 text-slate-400 tracking-widest">${isRecording ? '正在聆聽...' : '點擊麥克風開始說話'}</p>
+          
+          ${errorMsg ? `<div class="mt-4 bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-100 flex items-center gap-2 w-full justify-center">${getIcon('alert-circle', 'w-5 h-5')} ${errorMsg}</div>` : ''}
           ${resultHtml}
         </div>
       `;
@@ -630,7 +629,7 @@
 
     function handleSpeakClick() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) { state.speak.errorMsg = "當前環境 (如 Koder/Safari預覽) 不支援錄音。建議使用 Chrome 瀏覽器。"; renderApp(); return; }
+      if (!SpeechRecognition) { state.speak.errorMsg = "非常抱歉，當前環境 (如 Koder) 不支援錄音。請在 Safari/Chrome 瀏覽器中打開。"; renderApp(); return; }
       try {
         const recognition = new SpeechRecognition();
         recognitionInstance = recognition;
@@ -660,7 +659,9 @@
     }
     function nextSpeak() { initSpeaking(); renderApp(); }
 
-    // --- Mistakes & Canvas ---
+    // ==========================================
+    // 錯題本與手寫板 
+    // ==========================================
     let canvasCtx = null;
     let isDrawing = false;
 
@@ -672,23 +673,23 @@
 
       const mistakeWords = vocabDatabase.filter(w => state.mistakes.has(w.id));
       let contentHtml = mistakeWords.length === 0 ? `
-          <div class="flex-1 flex flex-col items-center justify-center text-slate-400 bg-white rounded-3xl border border-slate-100 border-dashed min-h-[300px]">
-            ${getIcon('check-circle-2', 'w-16 h-16 mb-4 text-green-300')}
-            <p class="text-lg font-medium text-slate-500">太棒了！目前沒有錯題。</p>
-            <p class="text-sm mt-2">在聽力或拼字練習中答錯的單字會自動出現在這裡。</p>
+          <div class="flex-1 flex flex-col items-center justify-center text-slate-400 bg-white rounded-[2.5rem] border border-slate-100 border-dashed min-h-[400px] shadow-sm">
+            <div class="p-6 bg-green-50 text-green-500 rounded-full mb-6">${getIcon('check-circle-2', 'w-16 h-16')}</div>
+            <p class="text-xl font-black text-slate-600 mb-2">太棒了！目前沒有錯題。</p>
+            <p class="text-sm font-medium text-center px-8">在聽力或拼字練習中答錯、或使用過提示的單字，會自動被收錄到這裡。</p>
           </div>
         ` : `
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pb-10">
             ${mistakeWords.map(word => `
-              <div onclick="openCanvas(${word.id})" class="bg-white p-5 rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-md cursor-pointer transition group relative">
-                <div class="flex justify-between items-start mb-2">
-                  <span class="text-xs font-semibold text-red-500 bg-red-50 px-2 py-1 rounded">${word.pos}</span>
-                  <button onclick="event.stopPropagation(); removeMistakeAndRender(${word.id})" class="text-slate-300 hover:text-red-500 p-1" title="移出租題本">${getIcon('trash-2', 'w-4 h-4')}</button>
+              <div onclick="openCanvas(${word.id})" class="bg-white p-6 rounded-3xl border border-slate-200 hover:border-red-300 hover:shadow-md cursor-pointer transition-all active:scale-95 relative group">
+                <div class="flex justify-between items-start mb-3">
+                  <span class="text-xs font-black text-red-600 bg-red-50 px-3 py-1 rounded-full">${word.pos}</span>
+                  <button onclick="event.stopPropagation(); removeMistakeAndRender(${word.id})" class="text-slate-300 hover:text-red-500 p-2 bg-slate-50 rounded-full transition-colors" title="移出租題本">${getIcon('trash-2', 'w-4 h-4')}</button>
                 </div>
-                <p class="text-3xl font-bold text-slate-800 mb-1">${word.word}</p>
-                <p class="text-slate-500">${word.meaning}</p>
-                <div class="mt-4 flex items-center text-indigo-500 text-sm font-medium md:opacity-0 group-hover:opacity-100 transition">
-                  ${getIcon('pen-tool', 'w-4 h-4 mr-1')} 進入手寫練習 ${getIcon('arrow-right', 'w-4 h-4 ml-1')}
+                <p class="text-4xl font-black text-slate-800 mb-2">${word.word}</p>
+                <p class="text-slate-500 font-medium">${word.meaning}</p>
+                <div class="mt-5 flex items-center text-red-500 text-sm font-bold bg-red-50 py-2 px-3 rounded-xl justify-center group-hover:bg-red-100 transition-colors">
+                  ${getIcon('pen-tool', 'w-4 h-4 mr-2')} 進入手寫罰抄
                 </div>
               </div>
             `).join('')}
@@ -696,11 +697,14 @@
         `;
 
       container.innerHTML = `
-        <div class="max-w-4xl mx-auto h-full flex flex-col animate-fadeIn">
+        <div class="w-full flex-1 flex flex-col justify-start animate-fadeIn py-6">
           ${backBtnHtml}
-          <header class="mb-6">
-            <h2 class="text-2xl font-bold flex items-center gap-2 text-red-600">${getIcon('alert-circle', 'w-6 h-6')} 錯題溫習區</h2>
-            <p class="text-slate-500 mt-2">點擊單字進入「手寫板」進行罰抄練習。練習完畢後可將其移出租題本。</p>
+          <header class="mb-8 px-2 flex items-center gap-3">
+            <div class="p-3 bg-red-50 text-red-600 rounded-xl">${getIcon('alert-circle', 'w-8 h-8')}</div>
+            <div>
+              <h2 class="text-2xl font-black text-slate-800">錯題溫習區</h2>
+              <p class="text-slate-500 font-medium text-sm mt-1">點擊單字進入「手寫板」進行罰抄練習</p>
+            </div>
           </header>
           ${contentHtml}
         </div>
@@ -708,17 +712,8 @@
     }
 
     function removeMistakeAndRender(id) { removeMistake(id); renderApp(); }
-
-    function openCanvas(wordId) {
-      state.mistakesView.selectedWord = vocabDatabase.find(w => w.id === wordId);
-      renderApp();
-    }
-
-    function closeCanvas() {
-      state.mistakesView.selectedWord = null;
-      renderApp();
-    }
-
+    function openCanvas(wordId) { state.mistakesView.selectedWord = vocabDatabase.find(w => w.id === wordId); renderApp(); }
+    function closeCanvas() { state.mistakesView.selectedWord = null; renderApp(); }
     function markLearnedFromCanvas() {
       if (state.mistakesView.selectedWord) {
         removeMistake(state.mistakesView.selectedWord.id);
@@ -728,31 +723,35 @@
 
     function renderCanvasMode(container, word) {
       container.innerHTML = `
-        <div class="max-w-3xl mx-auto flex flex-col h-full w-full animate-fadeIn pb-10">
-          <div class="flex items-center justify-between mb-4">
-            <button onclick="closeCanvas()" class="text-slate-500 hover:text-slate-800 font-medium flex items-center gap-1 p-2 bg-white rounded-lg shadow-sm border border-slate-100">
-              ${getIcon('arrow-left', 'w-4 h-4')} 返回列表
+        <div class="w-full flex-1 flex flex-col justify-start animate-fadeIn py-6">
+          
+          <div class="flex items-center justify-between mb-6">
+            <button onclick="closeCanvas()" class="text-slate-600 hover:text-slate-800 font-bold flex items-center gap-2 py-3 px-5 bg-white rounded-2xl shadow-sm border border-slate-200 active:scale-95 transition-transform">
+              ${getIcon('arrow-left', 'w-5 h-5')} 返回列表
             </button>
-            <button onclick="speak('${word.word}')" class="p-3 bg-indigo-50 text-indigo-600 rounded-full shadow-sm">${getIcon('volume-2', 'w-6 h-6')}</button>
+            <button onclick="speak('${word.word}')" class="p-4 bg-indigo-50 text-indigo-600 rounded-2xl shadow-sm hover:bg-indigo-100 active:scale-95 transition-transform">${getIcon('volume-2', 'w-6 h-6')}</button>
           </div>
 
-          <div class="bg-white p-4 md:p-6 rounded-3xl border border-slate-200 shadow-sm flex-1 flex flex-col relative overflow-hidden">
-            <div class="text-center mb-4 relative z-10 pointer-events-none">
-              <p class="text-lg font-medium text-slate-500 mb-1">${word.meaning} (${word.pos})</p>
-              <p class="text-5xl md:text-6xl font-black text-slate-800 tracking-widest">${word.word}</p>
+          <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200 flex-1 flex flex-col relative overflow-hidden min-h-[500px]">
+            
+            <div class="text-center mb-6 relative z-10 pointer-events-none">
+              <span class="text-sm font-black text-red-500 bg-red-50 px-4 py-1.5 rounded-full mb-3 inline-block">${word.pos}</span>
+              <p class="text-6xl md:text-7xl font-black text-slate-800 tracking-widest drop-shadow-sm">${word.word}</p>
+              <p class="text-xl font-bold text-slate-500 mt-2">${word.meaning}</p>
             </div>
 
-            <div id="canvas-container" class="flex-1 relative border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 overflow-hidden touch-none" style="background-image: linear-gradient(#f1f5f9 1px, transparent 1px), linear-gradient(90deg, #f1f5f9 1px, transparent 1px); background-size: 40px 40px;">
-              <p class="absolute top-2 left-0 w-full text-center text-slate-300 text-sm pointer-events-none select-none">請在下方手寫罰抄</p>
+            <!-- 畫布區 -->
+            <div id="canvas-container" class="flex-1 relative border-4 border-slate-100 rounded-3xl overflow-hidden touch-none" style="background-color: #f8fafc; background-image: linear-gradient(#e2e8f0 2px, transparent 2px), linear-gradient(90deg, #e2e8f0 2px, transparent 2px); background-size: 60px 60px; background-position: center center;">
+              <p class="absolute top-4 left-0 w-full text-center text-slate-400 font-bold pointer-events-none select-none opacity-50">請在方格內手寫罰抄</p>
               <canvas id="drawing-canvas" class="w-full h-full cursor-crosshair absolute top-0 left-0 touch-none"></canvas>
             </div>
 
-            <div class="flex flex-col md:flex-row gap-3 mt-4">
-              <button onclick="clearCanvas()" class="w-full md:w-1/3 py-4 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition">
+            <div class="flex flex-col md:flex-row gap-3 mt-6">
+              <button onclick="clearCanvas()" class="w-full md:w-1/3 py-4 bg-slate-100 text-slate-600 font-black text-lg rounded-2xl hover:bg-slate-200 transition active:scale-95">
                 清除重寫
               </button>
-              <button onclick="markLearnedFromCanvas()" class="w-full md:w-2/3 py-4 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 shadow-lg shadow-green-200 flex items-center justify-center gap-2 transition">
-                ${getIcon('check-circle-2', 'w-5 h-5')} 記住了，移出租題本
+              <button onclick="markLearnedFromCanvas()" class="w-full md:w-2/3 py-4 bg-slate-800 text-white font-black text-lg rounded-2xl hover:bg-slate-700 shadow-xl flex items-center justify-center gap-2 transition active:scale-95">
+                ${getIcon('check-circle-2', 'w-6 h-6 text-green-400')} 記住了，移出租題本
               </button>
             </div>
           </div>
@@ -772,7 +771,9 @@
       canvas.width = rect.width; canvas.height = rect.height;
       
       canvasCtx = canvas.getContext('2d');
-      canvasCtx.lineCap = 'round'; canvasCtx.lineJoin = 'round'; canvasCtx.lineWidth = 6; canvasCtx.strokeStyle = '#312e81';
+      canvasCtx.lineCap = 'round'; canvasCtx.lineJoin = 'round'; 
+      canvasCtx.lineWidth = 8; /* 加粗筆觸 */
+      canvasCtx.strokeStyle = '#1e293b'; /* 深石板灰，更像墨水 */
 
       canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mousemove', drawing);
       canvas.addEventListener('mouseup', stopDraw); canvas.addEventListener('mouseout', stopDraw);
@@ -797,17 +798,9 @@
     });
 
     // ==========================================
-    // 關鍵修復：強制執行初始化畫面渲染
+    // 啟動應用程式
     // ==========================================
-    try {
-      // 不再做任何條件判斷，直接把頁面畫出來
-      renderApp(); 
-    } catch(e) {
-      const mainContent = document.getElementById('main-content');
-      if (mainContent) {
-        mainContent.innerHTML = `<div style="padding:20px;color:red;font-size:20px;">啟動失敗: ${e.message}</div>`;
-      }
-    }
+    renderApp(); 
 
   </script>
 </body>
